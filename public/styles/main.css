@@ -1,0 +1,42 @@
+
+.nabla-regular {
+  font-family: "Nabla", system-ui;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  font-variation-settings:
+    "EDPT" 100,
+    "EHLT" 12;
+}
+.lobster-regular {
+    font-family: "Lobster", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+}
+.cinzel-decorative-regular {
+    font-family: "Cinzel Decorative", serif;
+    font-weight: 400;
+    font-style: normal;
+}
+.cinzel-decorative-bold {
+    font-family: "Cinzel Decorative", serif;
+    font-weight: 700;
+    font-style: normal;
+}
+.cinzel-decorative-black {
+    font-family: "Cinzel Decorative", serif;
+    font-weight: 900;
+    font-style: normal;
+}
+.listItem {
+    margin-bottom: 8px; /* Adjust as needed */
+    list-style-type: none;
+}
+
+.listItem img {
+    margin-right: 10px; /* Adjust as needed */
+}
+
+.listItem p {
+    margin: 0; /* Reset paragraph margin */
+}
