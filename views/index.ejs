@@ -74,7 +74,7 @@
       <div class="row d-flex flex-column gap-2 justify-content-center align-content-center mx-lg-5 px-5 py-1">
           <% posts.forEach( post => {%>
             <div class="col-12" style="max-width: 1200px; margin: auto;">
-              <div class="row rounded-2 bg" style="border: 1px solid rgb(5, 0, 0);">
+              <div class="row rounded-2" style="border: 1px solid rgb(5, 0, 0);">
                 <div class="col-md-3 col-5 d-flex justify-content-center rounded-start-2" style=" max-width: 326px; max-height: 500px; margin-left: -12px;" >
                   <img class="rounded-start-2 img-fluid me-auto" src="https://covers.openlibrary.org/b/id/<%= post.cover_id %>.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png" >
                 </div>
@@ -100,12 +100,18 @@
                           <textarea class="form-control" id="editReview<%=post.id%>" name="editedReview" style="height: 200px;" hidden><%=post.review%></textarea>
                         </div>
                         <div class="d-flex gap-2">
-                          <button type="button" class="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2" id="editButton<%=post.id%>" onclick="openEditing('<%=post.id%>')"> <i class="bi bi-pencil-square"></i> </button>
-                          <button type="submit" class="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2" id="checkButton<%=post.id%>" hidden> <i class="bi bi-check-lg"></i> </button>
-                          <button type="button" class="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2" id="cancelReview<%=post.id%>" onclick="closeEditing('<%=post.id%>')" hidden> <i class="bi bi-x-lg"></i> </button>
+                          <button type="button" class="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" id="editButton<%=post.id%>" onclick="openEditing('<%=post.id%>')"> <i class="bi bi-pencil-square"></i> </button>
+                          <button type="submit" class="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" id="checkButton<%=post.id%>" hidden> <i class="bi bi-check-lg"></i> </button>
+                          <button type="button" class="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" id="cancelReview<%=post.id%>" onclick="closeEditing('<%=post.id%>')" hidden> <i class="bi bi-x-lg"></i> </button>
                         </div>
                     </form>
                     <p class="card-text mt-auto"><small class="text-body-secondary"> <%= (post.time).toLocaleDateString()%> </small></p>
+                  </div>
+                  <div>
+                    <form action="/delete/<%= post.id %>" method="post" style="height: 0%; width: 0%;">
+                      <input type="text" hidden name="id" value="<%= post.id %>"/>
+                      <button type="submit" class="btn rounded-circle mt-2"><i class="bi bi-trash3-fill"></i></button>
+                    </form>
                   </div>
                 </div>
               </div>
