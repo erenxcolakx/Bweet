@@ -9,7 +9,7 @@ BookNotes is a book review app designed for book enthusiasts to easily add, edit
 - **Search:** Easily find book titles to add reviews.
 - **Add Reviews:** Share your thoughts and ratings on books you've read.
 - **Edit and Delete:** Manage your reviews by editing or deleting them.
-- **Sort:** Organize posts by **rating** or **creation date** for quick reference.
+- **Sort:** Organize posts by **rating** or **creation date**.
 
 ## Technologies Used
 
