@@ -1,11 +1,19 @@
 import * as postModel from '../model/model.js';
 
-let posts = [];
+export const homepage = async (req, res) => {
+  try {
+    res.render('homepage.ejs');
+  } catch (error) {
+    console.error(error);
+    res.redirect("/");
+  }
+}
 
 export const getPosts = async (req, res) => {
   try {
-    posts = await postModel.getAllBooks();
-    res.render("index.ejs", { posts : posts });
+    const userId = req.session.user.user_id;
+    let posts = await postModel.getAllBooks(userId);
+    res.render("index.ejs", { posts : posts, user: req.session.user.email});
   } catch (error) {
     console.error(error);
     res.redirect("/");
@@ -19,7 +27,8 @@ export const getBook = async (req,res) => {
   res.render("addBook.ejs",{
     title: title,
     author: author,
-    coverId : coverId
+    coverId : coverId,
+    user: req.session.user.email
   });
 }
 
@@ -30,42 +39,46 @@ export const addBook = async (req, res) => {
   const review = req.body.review;
   const rating = parseFloat(req.body.rating);
   const time = new Date();
+  const userId = req.session.user.user_id;
 
-  const result = await postModel.addBook(title, author, coverId, review, rating, time);
-  res.redirect("/");
+  const result = await postModel.addBook(title, author, coverId, review, rating, time, userId);
+  res.redirect("/books");
 }
 
 export const updateBook = async (req, res) => {
   const bookId = req.body.id;
   const editedReview = req.body.editedReview.trim();
   const time = new Date();
+  const userId = req.session.user.user_id;
   console.log(bookId,editedReview);
   try {
-    const result = await postModel.updateBook(bookId, editedReview, time);
-    res.redirect("/");
+    const result = await postModel.updateBook(bookId, editedReview, time, userId);
+    res.redirect("/books");
   } catch (error) {
     console.log("Review can't be edited", error);
-    res.redirect("/");
+    res.redirect("/books");
   }
 }
 
 export const sortBooks = async (req, res) => {
   const sortType = req.body.sortType;
+  const userId = req.session.user.user_id;
   try {
-    const posts = await postModel.getSortedBooks(sortType);
+    const posts = await postModel.getSortedBooks(sortType,userId);
     res.render("index.ejs", { posts: posts });
   } catch (error) {
     console.error("Error while sorting books:", error);
-    res.redirect("/");
+    res.redirect("/books");
   }
 }
 
 export const deleteBook = async (req, res) => {
   const postId = req.params.id;
+  const userId = req.session.user.user_id;
   try {
-    const result = await postModel.deleteBook(postId);;
-    res.redirect("/");
+    const result = await postModel.deleteBook(postId, userId);
+    res.redirect("/books");
   } catch (error) {
-    res.redirect("/");
+    res.redirect("/books");
   }
 }
