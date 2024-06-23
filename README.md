@@ -8,8 +8,11 @@ BookNotes is a book review app designed for book enthusiasts to easily add, edit
 - **Add Reviews:** Share your thoughts and ratings on books you've read.
 - **Edit and Delete:** Manage your reviews by editing or deleting them.
 - **Sort:** Organize posts by **rating** or **creation date**.
-- **User Authentication:** Log in and Register with email and password.
-
+- **User Authentication:** Log in and Register with email and password. <br/>
+## **Will be added** :
+  - Google Sign in
+  - Keeping signed in cookie
+  - Adding books manually
 ## Technologies Used
 
 - **Node.js**
