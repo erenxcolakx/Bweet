@@ -1,14 +1,19 @@
-
-.nabla-regular {
-  font-family: "Nabla", system-ui;
-  font-optical-sizing: auto;
-  font-weight: 400;
-  font-style: normal;
-  font-variation-settings:
-    "EDPT" 100,
-    "EHLT" 12;
+.josefin-sans-1 {
+    font-family: "Josefin Sans", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: 700;
+    font-style: normal;
 }
-.lobster-regular {
+.bodoni-moda-1 {
+    font-family: "Bodoni Moda", serif;
+    font-optical-sizing: auto;
+    font-weight: 800;
+    font-style: normal;
+  }
+.text-orange{
+    color: rgb(255, 145, 0);
+}
+  .lobster-regular {
     font-family: "Lobster", sans-serif;
     font-weight: 400;
     font-style: normal;
