@@ -30,8 +30,10 @@ export const getAllBooks = async (userId) => {
 
 // Function that adds a new post
 export const addBook = async (title, author, coverId, review, rating, time, userId) => {
+  const validCoverId = coverId === null ? null : (isNaN(parseInt(coverId)) ? null : parseInt(coverId));
+  console.log()
   try {
-    const result = await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)', [title, author, coverId, review, rating, time, userId]);
+    const result = await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)', [title, author, validCoverId, review, rating, time, userId]);
     return result;
   } catch (error) {
     throw error;
