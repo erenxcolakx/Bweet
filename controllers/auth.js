@@ -35,7 +35,7 @@ export const renderRegister = (req, res) => {
     res.render("register.ejs", { error: error });
   };
 
-  export const handleLogin = async (req, res) => {
+export const handleLogin = async (req, res) => {
     const email = req.body.username;
     const loginPassword = req.body.password;
 
@@ -62,7 +62,7 @@ export const renderRegister = (req, res) => {
     }
 };
   // Handle register
-  export const handleRegister = async (req, res) => {
+export const handleRegister = async (req, res) => {
     const email = req.body.username;
     const password = req.body.password;
 
@@ -88,8 +88,8 @@ export const renderRegister = (req, res) => {
     }
   };
 
-  // Handle logout
-  export const handleLogout = (req, res) => {
+// Handle logout
+export const handleLogout = (req, res) => {
     req.session.destroy((err) => {
       if (err) {
         console.log("Error destroying session: " + err);
@@ -98,16 +98,16 @@ export const renderRegister = (req, res) => {
         res.redirect('/');
       }
     });
-  };
+};
 
-  export const isAuthenticated = (req, res, next) => {
+export const isAuthenticated = (req, res, next) => {
     if (req.session && req.session.user && req.session.user.user_id) {
       next();
     } else {
       res.redirect('/login?error=You%20must%20be%20logged%20in%20to%20view%20this%20page');
     }
-  };
+};
 
-  app.listen(port, () => {
+app.listen(port, () => {
     console.log(`Server running on port ${port}`);
-  });
+});

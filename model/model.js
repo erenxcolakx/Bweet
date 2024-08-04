@@ -60,18 +60,16 @@ export const deleteBook = async (postId, userId) => {
 
 // Function that sorts posts by state
 export const getSortedBooks = async (sortType, userId) => {
-    switch (sortType) {
+  switch (sortType) {
       case "htl":
-        return await db.query('SELECT * FROM books ORDER BY rating DESC WHERE user_id = $1',[userId]).then(result => result.rows);
+          return await db.query('SELECT * FROM books WHERE user_id = $1 ORDER BY rating DESC', [userId]).then(result => result.rows);
       case "lth":
-        return await db.query('SELECT * FROM books ORDER BY rating ASC WHERE user_id = $1',[userId]).then(result => result.rows);
+          return await db.query('SELECT * FROM books WHERE user_id = $1 ORDER BY rating ASC', [userId]).then(result => result.rows);
       case "rto":
-        return await db.query('SELECT * FROM books ORDER BY time DESC WHERE user_id = $1',[userId]).then(result => result.rows);
+          return await db.query('SELECT * FROM books WHERE user_id = $1 ORDER BY time DESC', [userId]).then(result => result.rows);
       case "otr":
-        return await db.query('SELECT * FROM books ORDER BY time ASC WHERE user_id = $1',[userId]).then(result => result.rows);
+          return await db.query('SELECT * FROM books WHERE user_id = $1 ORDER BY time ASC', [userId]).then(result => result.rows);
       default:
-        throw new Error("Invalid sort type");
-    }
+          throw new Error("Invalid sort type");
+  }
 };
-
-
