@@ -1,11 +1,10 @@
 import express from 'express';
-import * as postController from '../controllers/postController.js';
-import * as auth from '../controllers/auth.js';
+import * as postController from '../controllers/postController';
+import * as auth from '../controllers/auth';
 const router = express.Router();
 
-router.route("/").get(postController.homepage);
-router.route("/login").get(auth.renderLogin).post(auth.handleLogin);
-router.route("/register").get(auth.renderRegister).post(auth.handleRegister);
+router.route("/login").post(auth.handleLogin);
+router.route("/register").post(auth.handleRegister);
 router.route("/logout").get(auth.handleLogout);
 router.route("/books").get(auth.isAuthenticated, postController.getPosts);
 router.route("/book").get(auth.isAuthenticated, postController.getBook);
