@@ -11,10 +11,10 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-
 app.use(cors({
-  origin: 'http://localhost:3000', // Frontend URL
-  credentials: true
+  origin: 'http://localhost:3000',  // Frontend uygulamanızın çalıştığı URL
+  methods: 'GET,POST,PUT,DELETE',    // İzin verilen HTTP metodları
+  credentials: true                  // Credential (cookie, authorization headers vb.) içeren istekleri kabul et
 }));
 
 if (!process.env.SECRET_KEY) {

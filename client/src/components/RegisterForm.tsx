@@ -13,7 +13,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post('/register', {
+      const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/register`, {
         username: email,
         password: password
       });

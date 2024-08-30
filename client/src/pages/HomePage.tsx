@@ -1,17 +1,20 @@
 import React from 'react';
 import Header from '../components/Header';
 import Jumbotron from '../components/Jumbotron';
-import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu ekliyoruz
+import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom'; // useNavigate'i ekliyoruz
 import axios from 'axios';
 
 const HomePage: React.FC = () => {
-  const { user, setUser } = useAuth();  // user ve setUser'ı alıyoruz
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate(); // useNavigate'i kullanıyoruz
 
   const handleLogout = async () => {
     try {
-      await axios.post('/logout');
+      await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/logout`);
       setUser(null);
-      window.location.href = '/login';
+      console.log('Logged out')
+      navigate('/'); // useNavigate ile yönlendiriyoruz
     } catch (error) {
       console.error('Logout failed:', error);
       alert('Logout failed. Please try again.');
@@ -20,7 +23,7 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="HomePage" data-bs-theme="dark">
-      <Header user={user} onLogout={handleLogout} /> {/* Header prop'larını geçiyoruz */}
+      <Header onLogout={handleLogout} /> {/* Header prop'larını geçiyoruz */}
       <Jumbotron />
     </div>
   );

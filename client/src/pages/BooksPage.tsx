@@ -4,6 +4,9 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import SortDropdown from '../components/SortDropdown';
 import BookPost from '../components/BookPost';
+import { useAuth } from '../contexts/AuthContext'; // AuthContext'ten user bilgisini çekmek için
+import { useNavigate } from 'react-router-dom'; // useNavigate'i ekliyoruz
+
 
 const BooksPage: React.FC = () => {
   interface Post {
@@ -17,15 +20,15 @@ const BooksPage: React.FC = () => {
   }
 
   const [posts, setPosts] = useState<Post[]>([]);
-  const [user, setUser] = useState('');
+  const { user, setUser } = useAuth();
+  const navigate = useNavigate(); // useNavigate'i kullanıyoruz
 
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get('/posts');
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/posts`);
         if (response.data.success) {
           setPosts(response.data.posts);
-          setUser(response.data.user);
         }
       } catch (err) {
         console.error('Failed to load posts');
@@ -36,16 +39,19 @@ const BooksPage: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.post('/logout');
-      window.location.href = '/login';
+      await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/logout`);
+      setUser(null);
+      console.log('Logged out')
+      navigate('/'); // useNavigate ile yönlendiriyoruz
     } catch (error) {
-      console.error('Failed to logout');
+      console.error('Logout failed:', error);
+      alert('Logout failed. Please try again.');
     }
   };
 
   const handleSort = async (sortType: string) => {
     try {
-      const response = await axios.post('/sort', { sortType });
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/sort`, { sortType });
       if (response.data.success) {
         setPosts(response.data.posts);
       }
@@ -56,7 +62,7 @@ const BooksPage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.post(`/delete/${id}`);
+      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/delete/${id}`);
       setPosts(posts.filter(post => post.id !== id));
     } catch (error) {
       console.error('Failed to delete post');
@@ -65,7 +71,7 @@ const BooksPage: React.FC = () => {
 
   const handleUpdate = async (id: number, editedReview: string) => {
     try {
-      await axios.post('/edit', { id, editedReview });
+      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/edit`, { id, editedReview });
       setPosts(posts.map(post => post.id === id ? { ...post, review: editedReview } : post));
     } catch (error) {
       console.error('Failed to update post');
@@ -74,7 +80,7 @@ const BooksPage: React.FC = () => {
 
   return (
     <div>
-      <Header user={user} onLogout={handleLogout} />
+      <Header onLogout={handleLogout} />
       <SearchBar onSearch={(query) => console.log('Searching:', query)} />
       <SortDropdown onSort={handleSort} />
       <div className="row d-flex flex-column gap-2 justify-content-center align-content-center mx-lg-5 px-5 py-1">

@@ -8,8 +8,8 @@ const ReviewPage: React.FC = () => {
 
   const handleSubmit = async (review: string, rating: number) => {
     try {
-      await axios.post('/submit', { title: 'Book Title', author: 'Author Name', coverId: '12345', review, rating });
-      navigate('/books'); // useHistory().push('/books') yerine kullanılır
+      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`, { title: 'Book Title', author: 'Author Name', coverId: '12345', review, rating });
+      navigate('/books');
     } catch (error) {
       console.error('Failed to submit review');
     }

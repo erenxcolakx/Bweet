@@ -6,7 +6,7 @@ import * as postModel from '../model/model.js';
 import env from 'dotenv'
 import { Request, Response, NextFunction } from 'express';
 import { Session } from 'express-session';
-
+import cors from 'cors';
 interface CustomSession extends Session {
   user: {
     user_id: number;
@@ -18,6 +18,13 @@ const app = express();
 const port = 5000;
 const saltRounds = 10;
 env.config();
+
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:4000'], // Birden fazla URL'ye izin ver
+  methods: 'GET,POST,PUT,DELETE',
+  credentials: true
+}));
+
 
 if (!process.env.SECRET_KEY) {
   throw new Error("SECRET_KEY environment variable is not defined");
