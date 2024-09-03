@@ -15,6 +15,7 @@ interface BookPostProps {
 }
 
 const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
+  console.log(post)
   const [isEditing, setIsEditing] = useState(false);
   const [editedReview, setEditedReview] = useState(post.review);
 

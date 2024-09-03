@@ -26,7 +26,9 @@ const BooksPage: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/posts`);
+        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/books`, {
+          withCredentials: true, // Oturum çerezlerini içermesini sağlar
+        });
         if (response.data.success) {
           setPosts(response.data.posts);
         }
@@ -39,7 +41,9 @@ const BooksPage: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/logout`);
+      await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/logout`, {
+        withCredentials: true, // Oturum çerezlerini içermesini sağlar
+      });
       setUser(null);
       console.log('Logged out')
       navigate('/'); // useNavigate ile yönlendiriyoruz
@@ -81,7 +85,7 @@ const BooksPage: React.FC = () => {
   return (
     <div>
       <Header onLogout={handleLogout} />
-      <SearchBar onSearch={(query) => console.log('Searching:', query)} />
+      <SearchBar />
       <SortDropdown onSort={handleSort} />
       <div className="row d-flex flex-column gap-2 justify-content-center align-content-center mx-lg-5 px-5 py-1">
         {posts.map(post => (

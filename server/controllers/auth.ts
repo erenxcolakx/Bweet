@@ -31,14 +31,20 @@ if (!process.env.SECRET_KEY) {
 }
 
 app.use(session({
-    secret: process.env.SECRET_KEY,
-    resave: false,
-    saveUninitialized: true
-  }));
+  secret: process.env.SECRET_KEY,
+  resave: true,
+  saveUninitialized: true,
+  cookie: {
+      secure: false, // HTTPS üzerinde çalışıyorsanız true yapın
+      httpOnly: true, // Çerezlerin JavaScript tarafından okunmasını engeller
+      maxAge: 24 * 60 * 60 * 1000, // 24 saatlik oturum
+      sameSite: 'lax' // Çerezleri çapraz site saldırılarına karşı korur, isteklerin site içinden geldiğini doğrular
+  }
+}));
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.set('view engine', 'ejs');
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.locals.user = (req.session as CustomSession).user;
@@ -58,10 +64,16 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
             const isMatch = await bcrypt.compare(loginPassword, storedHashedPassword);
             if (isMatch) {
-              (req.session as CustomSession).user = { user_id: user.user_id, email: user.email }; // Kullanıcı bilgilerini session'a kaydet
-
-                res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id } });
-            } else {
+              (req.session as CustomSession).user = { user_id: user.user_id, email: user.email };
+              req.session.save((err) => {
+                  if (err) {
+                      console.error("Session save error:", err);
+                      return res.status(500).json({ success: false, message: "Session save error" });
+                  }
+                  console.log("Session save success");
+                  res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id } });
+              });
+          } else {
                 res.status(401).json({ success: false, message: "Incorrect password" });
             }
         } else {
@@ -113,14 +125,16 @@ export const handleLogout = (req: Request, res: Response, next: NextFunction) =>
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-    if ((req.session as CustomSession) && (req.session as CustomSession).user && (req.session as CustomSession).user.user_id) {
+  console.log("Session in isAuthenticated:", (req.session as CustomSession).user)
+  if ((req.session as CustomSession) && (req.session as CustomSession).user && (req.session as CustomSession).user.user_id) {
       next();
-    } else {
+  } else {
+      console.log("Session in isAuthenticated:", "You must be logged in to view this page")
       res.status(401).json({ success: false, message: "You must be logged in to view this page" });
-    }
+  }
 };
 
 
 app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    console.log(`Auth server running on port ${port}`);
 });
