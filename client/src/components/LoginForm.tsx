@@ -44,25 +44,27 @@ const LoginForm: React.FC<LoginFormProps> = ({ error }) => {
               <div className="form-group">
                 <label htmlFor="email" className="josefin-sans-1">Email</label>
                 <input
+                  id="email"
                   type="email"
                   className="form-control"
                   name="username"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  autoComplete="username"
+                  autoComplete='username'
                 />
               </div>
               <div className="form-group">
                 <label htmlFor="password" className="josefin-sans-1">Password</label>
                 <input
+                  id="password"
                   type="password"
                   className="form-control"
                   name="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  autoComplete="current-password"
+                  autoComplete='current-password'
                 />
               </div>
               {error && <p className='mt-2'>{error}</p>}

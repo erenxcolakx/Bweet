@@ -24,19 +24,8 @@ const BooksPage: React.FC = () => {
   const navigate = useNavigate(); // useNavigate'i kullanıyoruz
 
   useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/books`, {
-          withCredentials: true, // Oturum çerezlerini içermesini sağlar
-        });
-        if (response.data.success) {
-          setPosts(response.data.posts);
-        }
-      } catch (err) {
-        console.error('Failed to load posts');
-      }
-    };
-    fetchPosts();
+    // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
+    handleSort('rto');
   }, []);
 
   const handleLogout = async () => {
@@ -55,7 +44,9 @@ const BooksPage: React.FC = () => {
 
   const handleSort = async (sortType: string) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/sort`, { sortType });
+      const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/sort`, { sortType }, {
+        withCredentials: true
+      });
       if (response.data.success) {
         setPosts(response.data.posts);
       }
@@ -66,16 +57,24 @@ const BooksPage: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     try {
-      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/delete/${id}`);
-      setPosts(posts.filter(post => post.id !== id));
+      await axios.post(
+        `${process.env.REACT_APP_AUTH_ADDRESS}/api/delete/${id}`,
+        {}, // İkinci parametre olarak boş bir veri nesnesi gönderiyoruz
+        {
+          withCredentials: true, // Üçüncü parametre olarak yapılandırma nesnesi içinde withCredentials
+        }
+      );
+      setPosts(posts.filter((post) => post.id !== id));
     } catch (error) {
-      console.error('Failed to delete post');
+      console.error('Failed to delete post', error);
     }
   };
 
   const handleUpdate = async (id: number, editedReview: string) => {
     try {
-      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/edit`, { id, editedReview });
+      await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/edit`, { id, editedReview }, {
+        withCredentials: true
+      });
       setPosts(posts.map(post => post.id === id ? { ...post, review: editedReview } : post));
     } catch (error) {
       console.error('Failed to update post');

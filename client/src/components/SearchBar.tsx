@@ -3,7 +3,6 @@ import axios from 'axios';
 import '../styles/Suggestion.css';
 import '../styles/ReviewModal.css'
 import ReviewModal from '../modals/ReviewModal'; // Bileşeni yeni ismiyle import edin
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 const SearchBar: React.FC = () => {
@@ -12,7 +11,6 @@ const SearchBar: React.FC = () => {
   const [selectedSuggestion, setSelectedSuggestion] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
-  const navigate = useNavigate();
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setQuery(e.target.value);
@@ -37,7 +35,7 @@ const SearchBar: React.FC = () => {
 
   const handleModalSubmit = async (rating: number, review: string) => {
     try {
-      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`, {
+      await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/submit`, {
         title: selectedSuggestion.title,
         author: selectedSuggestion.authorName,
         coverId: selectedSuggestion.coverId,
@@ -49,7 +47,7 @@ const SearchBar: React.FC = () => {
       });
 
       closeModal();
-      navigate('/books'); // /books sayfasını yeniden yönlendir
+      window.location.reload();
     } catch (error) {
       console.error('Failed to submit review:', error);
     }

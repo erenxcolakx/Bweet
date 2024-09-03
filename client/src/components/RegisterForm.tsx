@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext'; // useAuth hook'unu ekliyoruz
+import { useNavigate } from 'react-router-dom';
 
 interface RegisterFormProps {
   error?: string;
@@ -8,6 +10,7 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,11 +26,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
         window.location.href = '/login';
       } else {
         // Hata durumunda mesajı göster
-        alert('Registration failed: ' + response.data.message);
+        navigate('/register', { state: { error: 'Registration failed. Please try again.' } });
       }
     } catch (error:any) {
       console.error('There was an error!', error);
-      alert('Registration failed: ' + error.message);
+      navigate('/register', { state: { error: 'Registration failed. Please try again.' } });
     }
   };
 
@@ -39,23 +42,27 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
             <div className="form-group">
               <label htmlFor="email" className="josefin-sans-1">Email</label>
               <input
+                id="email"
                 type="email"
                 className="form-control"
                 name="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete='username'
               />
             </div>
             <div className="form-group">
               <label htmlFor="password" className="josefin-sans-1">Password</label>
               <input
+                id="password"
                 type="password"
                 className="form-control"
                 name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete='current-password'
               />
             </div>
             {error && <p>{error}</p>}
