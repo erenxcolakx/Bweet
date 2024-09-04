@@ -2,7 +2,8 @@
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    is_verified BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE books (
