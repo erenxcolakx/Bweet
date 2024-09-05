@@ -16,13 +16,28 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 };
 
 
-export const createUser = async (email: string, hashedPassword: string): Promise<void> => {
+export const createUser = async (email: string, hashedPassword: string): Promise<{ user_id: number, email: string }> => {
   try {
-    await db.query("INSERT INTO users (email, password) VALUES ($1, $2)", [email, hashedPassword]);
+    const result = await db.query(
+      "INSERT INTO users (email, password, is_verified) VALUES ($1, $2, $3) RETURNING user_id, email",
+      [email, hashedPassword, false]
+    );
+    return result.rows[0]; // Yeni eklenen kullanıcıyı (user_id ve email) geri döndür
   } catch (error) {
     throw error;
   }
 };
+
+
+export const verifyUser = async (userId: number) => {
+  try {
+    await db.query("UPDATE users SET is_verified = true WHERE user_id = $1", [userId]);
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 
 interface Book {
   id: number;

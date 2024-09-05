@@ -5,6 +5,7 @@ const router = express.Router();
 
 router.route("/api/login").post(auth.handleLogin);
 router.route("/api/register").post(auth.handleRegister);
+router.route("/api/verify-email").get(auth.handleEmailVerification);
 router.route("/api/logout").get(auth.handleLogout);
 router.route("/api/books").get(auth.isAuthenticated, postController.getPosts);
 router.route("/api/book").get(auth.isAuthenticated, postController.getBook);

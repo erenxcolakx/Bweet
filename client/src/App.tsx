@@ -10,6 +10,7 @@ import RegisterPage from './pages/RegisterPage';
 import ReviewPage from './pages/ReviewPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import BooksPage from './pages/BooksPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 // Korunan rotalar için bir bileşen oluşturuyoruz
 const ProtectedRoute = ({ element: Element, ...rest }: { element: JSX.Element }) => {
@@ -29,6 +30,8 @@ const App: React.FC = () => {
           {/* Protected Route */}
           <Route path="/review" element={<ProtectedRoute element={<ReviewPage />} />} />
           <Route path='/books' element={<ProtectedRoute element={<BooksPage />} />} />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
+
         </Routes>
       </Router>
     </AuthProvider>

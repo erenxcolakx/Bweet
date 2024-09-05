@@ -2,7 +2,11 @@ import express from "express";
 import session from "express-session";
 import bodyParser from "body-parser";
 import bcrypt from "bcrypt";
-import * as postModel from '../model/model.js';
+import jwt from 'jsonwebtoken';
+
+import * as authModel from '../model/model.js';
+import * as emailModel from '../model/mailModel.js';
+
 import env from 'dotenv'
 import { Request, Response, NextFunction } from 'express';
 import { Session } from 'express-session';
@@ -57,7 +61,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const loginPassword = req.body.password;
 
     try {
-        const result = await postModel.getUserByEmail(email);
+        const result = await authModel.getUserByEmail(email);
         if (result) {
             const user = result;
             const storedHashedPassword = user.password;
@@ -90,7 +94,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     const password = req.body.password;
 
     try {
-      const user = await postModel.getUserByEmail(email);
+      const user = await authModel.getUserByEmail(email);
 
       if (user) {
         res.status(409).json({ success: false, message: 'Email already exists. Try logging in.' });
@@ -100,14 +104,33 @@ app.use((req: Request, res: Response, next: NextFunction) => {
             console.log("Error hashing password", err);
             res.status(500).json({ success: false, message: 'Internal server error' });
           } else {
-            await postModel.createUser(email, hash);
-            res.status(201).json({ success: true, message: 'User registered successfully' });
+            const newUser = await authModel.createUser(email, hash);
+            const token = emailModel.generateVerificationToken(newUser.user_id);
+            emailModel.sendVerificationEmail(newUser.email, token);
+            res.status(201).json({ success: true, message: 'Registration successful. Please check your email to verify your account.' });
           }
         });
       }
     } catch (error) {
       console.log(error);
       res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };
+
+  export const handleEmailVerification = async (req: Request, res: Response, next: NextFunction) => {
+    const token = req.query.token as string;
+    const secretKey = process.env.JWT_SECRET;
+    if (!secretKey) {
+      throw new Error("JWT_SECRET environment variable is not defined");
+    }
+    try {
+      const decoded = jwt.verify(token, secretKey) as { userId: number }; // Token'ı çözümlüyoruz
+      const userId = decoded.userId;
+      // Kullanıcıyı veritabanında doğrulanmış olarak işaretle
+      await authModel.verifyUser(userId); // `verifyUser` adında bir fonksiyon olmalı
+      res.status(200).json({ success: true, message: 'Email verified successfully!' });
+    } catch (error) {
+      res.status(400).json({ success: false, message: 'Invalid or expired token.' });
     }
   };
 
