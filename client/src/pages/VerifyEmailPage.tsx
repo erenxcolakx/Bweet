@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import BweetNavBar from '../components/BweetNavBar';
 
 const VerifyEmailPage: React.FC = () => {
   const [message, setMessage] = useState<string>('Verifying your email...');
@@ -44,15 +45,20 @@ const VerifyEmailPage: React.FC = () => {
   }, [location, navigate]);
 
   return (
-    <div className="verify-email-page">
-      <h2>{isSuccess === true ? 'Success!' : 'Error!'}</h2>
-      <p>{message}</p>
-      {isSuccess === false && (
-        <button onClick={() => navigate('/register')} className="btn btn-primary">
-          Go to Register
-        </button>
-      )}
-    </div>
+    <>
+      <BweetNavBar />
+        <div className="verify-email-page d-flex justify-content-center align-items-center vh-100">
+        <div className="text-center">
+          <h2>{isSuccess === true ? 'Success!' : 'Error!'}</h2>
+          <p>{message}</p>
+          {isSuccess === false && (
+            <button onClick={() => navigate('/register')} className="btn btn-primary">
+              Go to Register
+            </button>
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 

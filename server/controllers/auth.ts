@@ -6,8 +6,8 @@ import jwt from 'jsonwebtoken';
 
 import * as authModel from '../model/model.js';
 import * as emailModel from '../model/mailModel.js';
-
-import env from 'dotenv'
+import { sendVerificationEmail, generateVerificationToken } from '../model/mailModel.js';
+import env from 'dotenv';
 import { Request, Response, NextFunction } from 'express';
 import { Session } from 'express-session';
 import cors from 'cors';
@@ -56,38 +56,54 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   });
 
 
-  export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
-    const email = req.body.username;
-    const loginPassword = req.body.password;
+export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
+  const email = req.body.username;
+  const loginPassword = req.body.password;
 
-    try {
-        const result = await authModel.getUserByEmail(email);
-        if (result) {
-            const user = result;
-            const storedHashedPassword = user.password;
+  try {
+    const result = await authModel.getUserByEmail(email);
+    if (result) {
+      const user = result;
+      const storedHashedPassword = user.password;
 
-            const isMatch = await bcrypt.compare(loginPassword, storedHashedPassword);
-            if (isMatch) {
-              (req.session as CustomSession).user = { user_id: user.user_id, email: user.email };
-              req.session.save((err) => {
-                  if (err) {
-                      console.error("Session save error:", err);
-                      return res.status(500).json({ success: false, message: "Session save error" });
-                  }
-                  console.log("Session save success");
-                  res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id } });
-              });
-          } else {
-                res.status(401).json({ success: false, message: "Incorrect password" });
-            }
-        } else {
-            res.status(404).json({ success: false, message: "User not found" });
+      // Şifre doğrulama
+      const isMatch = await bcrypt.compare(loginPassword, storedHashedPassword);
+      if (isMatch) {
+        // Kullanıcının doğrulanıp doğrulanmadığını kontrol et
+        if (!user.is_verified) {
+          // Kullanıcı doğrulanmamış, doğrulama e-postasını yeniden gönder
+          const token = generateVerificationToken(user.user_id);
+          sendVerificationEmail(user.email, token);
+
+          return res.status(403).json({
+            success: false,
+            message: "Your email is not verified. A new verification email has been sent."
+          });
         }
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ success: false, message: "Internal server error" });
+
+        // Kullanıcı doğrulanmışsa oturum aç
+        (req.session as CustomSession).user = { user_id: user.user_id, email: user.email };
+        req.session.save((err) => {
+          if (err) {
+            console.error("Session save error:", err);
+            return res.status(500).json({ success: false, message: "Session save error" });
+          }
+          console.log("Session save success");
+          res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id } });
+        });
+
+      } else {
+        res.status(401).json({ success: false, message: "Incorrect password" });
+      }
+    } else {
+      res.status(404).json({ success: false, message: "User not found. You can create new account" });
     }
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
 };
+
   // Handle register
   export const handleRegister = async (req: Request, res: Response, next: NextFunction) => {
     const email = req.body.username;

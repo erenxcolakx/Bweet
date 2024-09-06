@@ -1,8 +1,10 @@
 import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import env from 'dotenv';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js'; // Mailgun.js modülünü kullanıyoruz
-dotenv.config();
+import { getVerificationEmailTemplate } from '../utils/emailTemplates';
+
+env.config();
 
 export function generateVerificationToken(userId: number) {
   const secretKey = process.env.JWT_SECRET; // Ensure you have a secret key in your .env file
@@ -22,11 +24,11 @@ export function sendVerificationEmail(userEmail: string, token: string) {
 
   // Email verilerini oluşturma
   const emailData = {
-    from: 'Your App <noreply@yourdomain.com>',
+    from: 'Bweet <bweetapp@gmail.com>',
     to: userEmail,
     subject: 'Verify your email',
     text: `Please verify your email by clicking the link: ${verificationUrl}`,
-    html: `<p>Please verify your email by clicking the link: <a href="${verificationUrl}">Verify Email</a></p>`
+    html: getVerificationEmailTemplate(verificationUrl)
   };
 
   // Mailgun ile email gönderimi

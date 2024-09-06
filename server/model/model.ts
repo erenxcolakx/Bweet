@@ -1,6 +1,7 @@
 import db from '../config/database';
 
 interface User {
+  is_verified: boolean;
   user_id: number;
   email: string;
   password: string;

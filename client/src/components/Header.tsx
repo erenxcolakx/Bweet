@@ -2,11 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu içe aktarıyoruz
 
-interface User {
-  email: string;
-  userId: number;
-}
-
 const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const { user } = useAuth();  // user bilgisini global state'den alıyoruz
 
@@ -21,7 +16,7 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             <Link to="/books">
               <img src="/images/favicon.png" alt="book icon" className="mb-3" width="48px" />
             </Link>
-            <h1 className="text-orange mt-2 josefin-sans-1">BookNotes</h1>
+            <h1 className="text-orange mt-2 josefin-sans-1">Bweet</h1>
           </div>
           <div className="row d-flex flex-column my-3">
             {user ? (

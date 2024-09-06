@@ -2,7 +2,7 @@ import React from 'react';
 import LoginForm from '../components/LoginForm';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 import { useLocation } from 'react-router-dom';
-import BookNotesNavBar from '../components/BookNotesNavBar';
+import BweetNavBar from '../components/BweetNavBar';
 
 const LoginPage: React.FC = () => {
   const location = useLocation();
@@ -10,7 +10,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <div className="LoginPage">
-      <BookNotesNavBar/>
+      <BweetNavBar/>
       <div className="container mt-5">
         <h1 className="josefin-sans-1">Login</h1>
         <div className="row">

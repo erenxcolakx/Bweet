@@ -38,7 +38,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
 
       if (response.data.success) {
         // Başarılı kayıt işlemi, kullanıcıyı giriş sayfasına yönlendir
-        navigate('/login');
+        navigate('/login', {
+          state: { error: 'Check your email to validate your account!' }
+        });
       } else {
         // Hata durumunda mesajı göster
         setLocalError(response.data.message);
