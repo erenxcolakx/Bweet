@@ -163,6 +163,30 @@ export const handleLogout = (req: Request, res: Response, next: NextFunction) =>
   });
 };
 
+export const deleteAccount = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.session as CustomSession).user.user_id; // Get the user ID from the session
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+
+    // Call model function to delete the user
+    await authModel.deleteUserById(userId);
+
+    // Destroy session after deletion
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ success: false, message: 'Failed to delete account' });
+      }
+      return res.status(200).json({ success: true, message: 'Account deleted successfully' });
+    });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
+
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   console.log("Session in isAuthenticated:", (req.session as CustomSession).user)
@@ -174,6 +198,17 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   }
 };
 
+export const checkAuth = (req: Request, res: Response) => {
+  const user = (req.session as CustomSession)?.user;
+
+  if (user && user.user_id) {
+    // Kullanıcı giriş yapmışsa oturum verisini döndür
+    res.status(200).json({ success: true, user });
+  } else {
+    // Kullanıcı oturum açmamışsa hata döndür
+    res.status(401).json({ success: false, message: "Not authenticated" });
+  }
+};
 
 app.listen(port, () => {
     console.log(`Auth server running on port ${port}`);

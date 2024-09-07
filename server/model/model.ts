@@ -47,6 +47,23 @@ export const createUser = async (email: string, hashedPassword: string): Promise
   }
 };
 
+export const deleteUserById = async (user_id: number) => { // Transaction işlemi için veritabanı bağlantısını alın
+  try {
+    await db.query('BEGIN'); // Transaction başlat
+    // Önce books tablosundaki kullanıcının kitap yorumlarını sil
+    await db.query('DELETE FROM books WHERE user_id = $1', [user_id]);
+    // Ardından users tablosundan kullanıcıyı sil
+    const result = await db.query('DELETE FROM users WHERE user_id = $1 RETURNING *', [user_id]);
+
+    await db.query('COMMIT'); // Transaction'ı onayla
+
+    console.log("User deleted: ", result.rows[0]);
+    return result.rows[0]; // Silinen kullanıcı bilgilerini döndür
+  } catch (error) {
+    await db.query('ROLLBACK'); // Hata durumunda işlem iptal edilir
+    throw error;
+  }
+};
 
 export const verifyUser = async (userId: number) => {
   try {

@@ -56,6 +56,26 @@ const ProfilePage: React.FC = () => {
       console.error('Failed to update profile', error);
     }
   };
+
+  const handleDeleteAccount = async () => {
+    const confirmDelete = window.confirm('Are you sure you want to delete your account? Your Book Notes also will be deleted. This action cannot be undone!');
+
+    if (confirmDelete) {
+      try {
+        const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/delete-account`, {}, { withCredentials: true });
+
+        if (response.data.success) {
+          setUser(null); // Clear the user from context
+          navigate('/login', { state: { message: 'User deleted successfully' } });// Redirect to login page after deletion
+        } else {
+          console.error('Failed to delete account');
+        }
+      } catch (error) {
+        console.error('Error deleting account:', error);
+      }
+    }
+  };
+
   return (
     <div className="profile-page container mt-5">
       <h1 className="josefin-sans-1">Profile Page</h1>
@@ -80,6 +100,8 @@ const ProfilePage: React.FC = () => {
       ) : (
         <button onClick={handleEditToggle} className="btn btn-dark mt-3">Edit Profile</button>
       )}
+      {/* Delete Account Button */}
+      <button onClick={handleDeleteAccount} className="btn btn-danger mt-3">Delete Account</button>
     </div>
   );
 };
