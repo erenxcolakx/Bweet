@@ -1,11 +1,14 @@
 import express from 'express';
 import * as postController from '../controllers/postController';
 import * as auth from '../controllers/auth';
+import * as profileController from '../controllers/profileController';
 const router = express.Router();
 
 router.route("/api/login").post(auth.handleLogin);
 router.route("/api/register").post(auth.handleRegister);
 router.route("/api/verify-email").get(auth.handleEmailVerification);
+router.route("/api/profile").get(auth.isAuthenticated, profileController.getProfile);
+router.route("/api/profile/update").post(auth.isAuthenticated, profileController.updateProfile);
 router.route("/api/logout").get(auth.handleLogout);
 router.route("/api/books").get(auth.isAuthenticated, postController.getPosts);
 router.route("/api/book").get(auth.isAuthenticated, postController.getBook);

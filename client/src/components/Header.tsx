@@ -1,12 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu içe aktarıyoruz
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const { user } = useAuth();  // user bilgisini global state'den alıyoruz
-
+  const navigate = useNavigate();
   // user nesnesinin email ve userId bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz
+  const userName = user?.name || "User"; //
+  function handleProfile(): void {
+    navigate("/myprofile")
+  }
 
   return (
     <header className="py-3 mb-3 border-bottom">
@@ -22,10 +27,11 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
             {user ? (
               <div className="dropdown">
                 <button className="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  {userEmail}  {/* user email bilgisi varsa göster, yoksa 'User' olarak göster */}
+                  {userName !== "User" ? (userName):(userEmail)}   {/* user email bilgisi varsa göster, yoksa 'User' olarak göster */}
                 </button>
                 <ul className="dropdown-menu">
                   <li>
+                    <button type="button" className="dropdown-item" onClick={handleProfile}>My Profile</button>
                     <button type="button" className="dropdown-item" onClick={onLogout}>Log out</button>
                   </li>
                 </ul>

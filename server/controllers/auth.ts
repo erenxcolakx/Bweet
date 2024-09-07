@@ -15,6 +15,7 @@ interface CustomSession extends Session {
   user: {
     user_id: number;
     email: string;
+    name: string;
   };
 }
 
@@ -82,14 +83,14 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
         }
 
         // Kullanıcı doğrulanmışsa oturum aç
-        (req.session as CustomSession).user = { user_id: user.user_id, email: user.email };
+        (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name};
         req.session.save((err) => {
           if (err) {
             console.error("Session save error:", err);
             return res.status(500).json({ success: false, message: "Session save error" });
           }
           console.log("Session save success");
-          res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id } });
+          res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id, name: user.name } });
         });
 
       } else {

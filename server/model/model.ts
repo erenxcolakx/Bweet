@@ -5,6 +5,7 @@ interface User {
   user_id: number;
   email: string;
   password: string;
+  name: string
 }
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
@@ -16,6 +17,23 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
   }
 };
 
+export const getUserById = async (user_id: number) => {
+  try {
+    const result = await db.query('SELECT user_id, email, name FROM users WHERE user_id = $1', [user_id]);
+    return result.rows[0];
+  } catch (error) {
+    throw error
+  }
+};
+
+export const updateUserName = async (user_id: number, name: string) => {
+  try {
+    const result = await db.query('UPDATE users SET name = $1 WHERE user_id = $2 RETURNING *', [name, user_id]);
+    return result.rows[0];
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const createUser = async (email: string, hashedPassword: string): Promise<{ user_id: number, email: string }> => {
   try {
