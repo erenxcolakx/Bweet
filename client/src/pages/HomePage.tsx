@@ -22,7 +22,7 @@ const HomePage: React.FC = () => {
   };
 
   return (
-    <div className="HomePage" data-bs-theme="dark">
+    <div className="HomePage" data-bs-theme="light">
       <Header onLogout={handleLogout} /> {/* Header prop'larını geçiyoruz */}
       <Jumbotron />
     </div>

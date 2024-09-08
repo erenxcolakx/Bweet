@@ -16,16 +16,16 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   return (
     <header className="py-3 mb-3 border-bottom">
       <div className="container-fluid d-flex flex-column gap-3 align-items-center" style={{ gridTemplateColumns: '1fr 2fr' }}>
-        <div className="container d-flex flex-wrap justify-content-md-between justify-content-center">
-          <div className="d-flex align-items-center">
+        <div className="container d-flex flex-column flex-md-row justify-content-md-between justify-content-center">
+          <div className="d-flex align-items-center justify-content-center">
             <Link to="/books">
-              <img src="/images/favicon.png" alt="book icon" className="mb-3" width="48px" />
+              <img src="/images/favicon.png" alt="book icon" className="mb-3 mt-3" width="32px" />
             </Link>
-            <h1 className="text-orange mt-2 josefin-sans-1">Bweet</h1>
+            <h1 className="text-blue mt-2 ms-2 lobster-regular">Bweet</h1>
           </div>
           <div className="row d-flex flex-column my-3">
             {user ? (
-              <div className="dropdown">
+              <div className="dropdown d-flex justify-content-center">
                 <button className="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                   {userName !== "User" ? (userName):(userEmail)}   {/* user email bilgisi varsa göster, yoksa 'User' olarak göster */}
                 </button>
@@ -38,8 +38,8 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               </div>
             ) : (
               <div className="d-flex gap-3">
-                <Link to="/login" className="btn btn-outline-light">Login</Link>
-                <Link to="/register" className="btn btn-outline-light">Register</Link>
+                <Link to="/login" className="btn btn-outline-dark">Login</Link>
+                <Link to="/register" className="btn btn-outline-dark">Register</Link>
               </div>
             )}
           </div>
