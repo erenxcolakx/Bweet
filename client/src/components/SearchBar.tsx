@@ -33,7 +33,7 @@ const SearchBar: React.FC = () => {
     setSelectedSuggestion(null);
   };
 
-  const handleModalSubmit = async (rating: number, review: string) => {
+  const handleModalSubmit = async (rating: number, review: string, isPublic: boolean) => {
     try {
       await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/submit`, {
         title: selectedSuggestion.title,
@@ -41,6 +41,7 @@ const SearchBar: React.FC = () => {
         coverId: selectedSuggestion.coverId,
         rating,
         review,
+        isPublic,
         userId: user?.userId, // AuthContext'ten gelen kullanıcı ID'sini ekliyoruz
       }, {
         withCredentials: true // Session cookie'lerinin gönderilmesi için

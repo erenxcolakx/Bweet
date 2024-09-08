@@ -103,11 +103,12 @@ export const addBook = async (
   review: string,
   rating: number,
   time: Date,
-  userId: number
+  userId: number,
+  isPublic: boolean
 ): Promise<void> => {
   const validCoverId = coverId === null ? null : (isNaN(parseInt(coverId)) ? null : parseInt(coverId));
   try {
-    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)', [title, author, validCoverId, review, rating, time, userId]);
+    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [title, author, validCoverId, review, rating, time, userId, isPublic]);
   } catch (error) {
     throw error;
   }
