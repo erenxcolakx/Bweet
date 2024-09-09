@@ -74,7 +74,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, title, autho
                     role="switch"
                     id="flexSwitchCheckDefault"
                     onChange={handleToggle}
-                    checked={!isPublic} // Durumun tersini gösterir (true: checked)
+                    checked={isPublic}
                   />
                   <label className="toggle-text ms-3 barlow-condensed-semibold" htmlFor='flexSwitchCheckDefault'>
                     {"Publish Post"}
