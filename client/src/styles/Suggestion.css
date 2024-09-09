@@ -15,4 +15,5 @@
     overflow-y: auto;
     border-radius: 4px;
     padding: 5px;
-  }
+    border: 1px solid #f6f6f6;
+}

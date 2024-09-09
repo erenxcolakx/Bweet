@@ -38,13 +38,14 @@ export const addBook = async (req: Request, res: Response, next: NextFunction) =
   const author = req.body.author;
   const coverId = req.body.coverId;
   const review = req.body.review;
+  const isPublic = req.body.isPublic;
   const rating = parseFloat(req.body.rating);
   const time = new Date();
   const userId = (req.session as CustomSession).user.user_id;
 
   try {
-    const result = await postModel.addBook(title, author, coverId, review, rating, time, userId);
-    res.status(201).json({ success: true, message: "Book added successfully" });
+    const result = await postModel.addBook(title, author, coverId, review, rating, time, userId, isPublic);
+    res.status(201).json({ success: true, message: "Book added successfully", result: result });
   } catch (error) {
     console.error("Error adding book:", error);
     res.status(500).json({ success: false, message: "Failed to add book" });
@@ -54,17 +55,23 @@ export const addBook = async (req: Request, res: Response, next: NextFunction) =
 export const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   const bookId = req.body.id;
   const editedReview = req.body.editedReview.trim();
+  const editedRating = req.body.editedRating;
+  const isPublic = req.body.isPublic;
   const time = new Date();
   const userId = (req.session as CustomSession).user.user_id;
 
   try {
-    const result = await postModel.updateBook(bookId, editedReview, time, userId);
+    // Call the updated model function to handle review, rating, and public status
+    const result = await postModel.updateBook(bookId, editedReview, editedRating, isPublic, time, userId);
+
     res.status(200).json({ success: true, message: "Book updated successfully" });
   } catch (error) {
     console.error("Error updating book:", error);
     res.status(500).json({ success: false, message: "Failed to update book" });
   }
 }
+
+
 export const sortBooks = async (req: Request, res: Response, next: NextFunction) => {
   const sortType = req.body.sortType;
   const userId = (req.session as CustomSession).user.user_id;

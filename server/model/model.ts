@@ -103,11 +103,12 @@ export const addBook = async (
   review: string,
   rating: number,
   time: Date,
-  userId: number
+  userId: number,
+  isPublic: boolean
 ): Promise<void> => {
   const validCoverId = coverId === null ? null : (isNaN(parseInt(coverId)) ? null : parseInt(coverId));
   try {
-    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)', [title, author, validCoverId, review, rating, time, userId]);
+    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [title, author, validCoverId, review, rating, time, userId, isPublic]);
   } catch (error) {
     throw error;
   }
@@ -117,15 +118,21 @@ export const addBook = async (
 export const updateBook = async (
   postId: number,
   editedReview: string,
+  editedRating: number,
+  isPublic: boolean,
   time: Date,
   userId: number
 ): Promise<void> => {
   try {
-    await db.query('UPDATE books SET review = $1, time = $2 WHERE id = $3 AND user_id = $4', [editedReview, time, postId, userId]);
+    await db.query(
+      'UPDATE books SET review = $1, rating = $2, is_public = $3, time = $4 WHERE id = $5 AND user_id = $6',
+      [editedReview, editedRating, isPublic, time, postId, userId]
+    );
   } catch (error) {
     throw error;
   }
 };
+
 
 
 // Delete post function
