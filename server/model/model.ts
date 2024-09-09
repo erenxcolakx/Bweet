@@ -118,15 +118,21 @@ export const addBook = async (
 export const updateBook = async (
   postId: number,
   editedReview: string,
+  editedRating: number,
+  isPublic: boolean,
   time: Date,
   userId: number
 ): Promise<void> => {
   try {
-    await db.query('UPDATE books SET review = $1, time = $2 WHERE id = $3 AND user_id = $4', [editedReview, time, postId, userId]);
+    await db.query(
+      'UPDATE books SET review = $1, rating = $2, is_public = $3, time = $4 WHERE id = $5 AND user_id = $6',
+      [editedReview, editedRating, isPublic, time, postId, userId]
+    );
   } catch (error) {
     throw error;
   }
 };
+
 
 
 // Delete post function

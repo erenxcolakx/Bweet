@@ -17,6 +17,7 @@ const BooksPage: React.FC = () => {
     rating: number;
     review: string;
     time: string;
+    is_public: boolean;
   }
 
   const [posts, setPosts] = useState<Post[]>([]);
@@ -70,14 +71,24 @@ const BooksPage: React.FC = () => {
     }
   };
 
-  const handleUpdate = async (id: number, editedReview: string) => {
+  const handleUpdate = async (id: number, editedReview: string, editedRating: number, isPublic: boolean) => {
     try {
-      await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/edit`, { id, editedReview }, {
+      await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/edit`, {
+        id,
+        editedReview,
+        editedRating,
+        isPublic
+      }, {
         withCredentials: true
       });
-      setPosts(posts.map(post => post.id === id ? { ...post, review: editedReview } : post));
+      // Update the posts state with the new edited values
+      setPosts(posts.map(post =>
+        post.id === id
+          ? { ...post, review: editedReview, rating: editedRating, is_public: isPublic }
+          : post
+      ));
     } catch (error) {
-      console.error('Failed to update post');
+      console.error('Failed to update post', error);
     }
   };
 

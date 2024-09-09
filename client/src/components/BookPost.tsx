@@ -9,15 +9,17 @@ interface BookPostProps {
     rating: number;
     review: string;
     time: string;
+    is_public: boolean;
   };
   onDelete: (id: number) => void;
-  onUpdate: (id: number, editedReview: string) => void;
+  onUpdate: (id: number, editedReview: string, editedRating: number, isPublic: boolean) => void;
 }
 
 const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
-  console.log(post)
   const [isEditing, setIsEditing] = useState(false);
   const [editedReview, setEditedReview] = useState(post.review);
+  const [editedRating, setEditedRating] = useState(post.rating);
+  const [isPublic, setIsPublic] = useState(post.is_public);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -26,34 +28,53 @@ const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
   const handleCancel = () => {
     setIsEditing(false);
     setEditedReview(post.review);
+    setEditedRating(post.rating);
+    setIsPublic(post.is_public);
   };
 
   const handleUpdate = () => {
-    onUpdate(post.id, editedReview);
+    onUpdate(post.id, editedReview, editedRating, isPublic);
     setIsEditing(false);
   };
 
-  const roundedRating = Math.round(post.rating);
+  const roundedRating = Math.round(editedRating);
 
   return (
     <div className="col-12" style={{ maxWidth: '1200px', margin: 'auto' }}>
-      <div className="row rounded-2" style={{ border: '1px solid rgb(5, 0, 0)' }}>
-        <div className="col-md-3 col-5 d-flex justify-content-center rounded-start-2" style={{ maxWidth: '326px', maxHeight: '500px', marginLeft: '-12px' }}>
+      <div className="row d-flex rounded-2 flex-md-row flex-column justify-content-md-start justify-content-center" style={{ border: '1px solid rgb(5, 0, 0)', padding: 0 }}>
+        <div className="col-md-3 col-12 d-flex justify-content-center rounded-2" style={{ padding: 0 }}>
           <img
-            className="rounded-start-2 img-fluid me-auto"
+            className="rounded-2 img-fluid col-md-12"
+            style={{ margin: 0 , maxHeight: '500px'}}
             src={`https://covers.openlibrary.org/b/id/${post.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
             alt={post.title}
           />
         </div>
-        <div className="col-md-8 col-7 mt-1 mb-1 d-flex">
+        <div className="col-md-9 col-12 mt-1 mb-1 d-flex">
           <div className="d-flex flex-column mb-4 mt-1 w-100">
-            <h3 className="card-title">{post.title}</h3>
-            <h6 className="card-text text-body-secondary mt-1">{post.author}</h6>
-            <p className="card-text">
-              {Array.from({ length: roundedRating }, (_, i) => '⭐')}
-              , {post.rating}
-            </p>
-            <div className="card-text text-break" id={`review${post.id}`} style={{ maxHeight: '150px', overflowY: 'auto' }}>
+            <h3 className="card-title text-md-start text-center oswald-mid">{post.title}</h3>
+            <h6 className="card-text text-body-secondary mt-1 text-md-start text-center fst-italic">{post.author}</h6>
+            <div className="card-text">
+              {isEditing ? (
+                <div className='gap-0 my-0'>
+                  <input
+                    type="range"
+                    className="form-range text-md-start text-center"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    value={editedRating}
+                    onChange={(e) => setEditedRating(Number(e.target.value))} />
+                  <p className='d-inline-block'>⭐ {editedRating}</p>
+                </div>
+              ) : (
+                <div className='text-md-start text-center my-2 '>
+                  {Array.from({ length: roundedRating }, (_, i) => '⭐')}
+                  , {post.rating}
+                </div>
+              )}
+            </div>
+            <div className="card-text text-break" id={`review${post.id}`} style={{ maxHeight: '250px', overflowY: 'auto' }}>
               {isEditing ? (
                 <textarea
                   className="form-control"
@@ -65,6 +86,20 @@ const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
                 post.review
               )}
             </div>
+            {isEditing && (
+              <div className="d-flex form-check form-group form-switch mt-3 align-items-center">
+                <input
+                  className="form-check-input"
+                  type="checkbox"
+                  id={`isPublicSwitch${post.id}`}
+                  checked={isPublic}
+                  onChange={(e) => setIsPublic(e.target.checked)}
+                />
+                <label className="form-check-label ms-2 barlow-condensed-semibold" htmlFor={`isPublicSwitch${post.id}`}>
+                  {isPublic ? 'Publish Post' : 'Private Post'}
+                </label>
+              </div>
+            )}
             <div className="d-flex gap-2">
               {isEditing ? (
                 <>
@@ -74,21 +109,26 @@ const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
                   <button type="button" className="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" onClick={handleCancel}>
                     <i className="bi bi-x-lg"></i>
                   </button>
+                  <button type="button" className="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" onClick={() => onDelete(post.id)}>
+                    <i className="bi bi-trash3-fill"></i>
+                  </button>
                 </>
               ) : (
-                <button type="button" className="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" onClick={handleEdit}>
-                  <i className="bi bi-pencil-square"></i>
-                </button>
+                <>
+                  <button type="button" className="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" onClick={handleEdit}>
+                    <i className="bi bi-pencil-square"></i>
+                  </button>
+                  <button type="button" className="btn btn-dark border-light btn-sm rounded-5 btn-light mt-2 mb-2" onClick={() => onDelete(post.id)}>
+                    <i className="bi bi-trash3-fill"></i>
+                  </button>
+                </>
               )}
             </div>
-            <p className="card-text mt-auto">
-              <small className="text-body-secondary">{new Date(post.time).toLocaleDateString()}</small>
+            <p className="card-text mt-auto text-md-start text-center">
+              <small className="text-body-secondary">
+                {new Date(post.time).toLocaleDateString()} - {isPublic ? 'Published' : 'Private'}
+              </small>
             </p>
-          </div>
-          <div>
-            <button type="button" className="btn rounded-circle mt-2" onClick={() => onDelete(post.id)}>
-              <i className="bi bi-trash3-fill"></i>
-            </button>
           </div>
         </div>
       </div>

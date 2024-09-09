@@ -13,7 +13,6 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
   try {
     // Assuming the user is logged in and the user ID is stored in the session
     const userId = (req.session as CustomSession).user?.user_id;
-    
     if (!userId) {
       return res.status(401).json({ success: false, message: "User not authenticated" });
     }
