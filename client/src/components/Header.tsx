@@ -9,14 +9,19 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   // user nesnesinin email ve userId bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz
   const userName = user?.name || "User"; //
+
   function handleProfile(): void {
     navigate("/myprofile")
   }
+  function navigateMyBooksPage(): void {
+    navigate("/books")
+  }
 
   return (
-    <header className="py-3 mb-3 border-bottom">
+    <header className="mb-3 border-bottom">
       <div className="container-fluid d-flex flex-column gap-3 align-items-center" style={{ gridTemplateColumns: '1fr 2fr' }}>
-        <div className="container d-flex flex-column flex-md-row justify-content-md-between justify-content-center">
+        <nav className="navbar container d-flex flex-column flex-md-row justify-content-md-between justify-content-center">
+
           <div className="d-flex align-items-center justify-content-center">
             <Link to="/books">
               <img src="/images/favicon.png" alt="book icon" className="mb-3 mt-3" width="32px" />
@@ -26,13 +31,22 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
           <div className="row d-flex flex-column my-3">
             {user ? (
               <div className="dropdown d-flex justify-content-center">
-                <button className="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                  {userName !== "User" ? (userName):(userEmail)}   {/* user email bilgisi varsa göster, yoksa 'User' olarak göster */}
-                </button>
-                <ul className="dropdown-menu">
-                  <li>
-                    <button type="button" className="dropdown-item" onClick={handleProfile}>My Profile</button>
-                    <button type="button" className="dropdown-item" onClick={onLogout}>Log out</button>
+                <ul className="nav flex-row gap-2">
+                  <li className="nav-item">
+                    <button type="button" className="btn" onClick={navigateMyBooksPage}>My Books</button>
+                  </li>
+                  <li className="nav-item">
+                    <button type="button" className="btn" onClick={handleProfile}>My Profile</button>
+                  </li>
+                  <li className='nav-item dropdown'>
+                    <a className="nav-link dropdown-toggle" role='button' href='/' type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      {userName !== "User" ? (userName):(userEmail)}   {/* user email bilgisi varsa göster, yoksa 'User' olarak göster */}
+                    </a>
+                    <ul className="dropdown-menu">
+                      <li>
+                        <button type="button" className="dropdown-item" onClick={onLogout}>Log out</button>
+                      </li>
+                    </ul>
                   </li>
                 </ul>
               </div>
@@ -43,7 +57,7 @@ const Header: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
               </div>
             )}
           </div>
-        </div>
+        </nav>
       </div>
     </header>
   );
