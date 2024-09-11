@@ -73,8 +73,6 @@ export const verifyUser = async (userId: number) => {
   }
 };
 
-
-
 interface Book {
   id: number;
   title: string;
@@ -95,6 +93,15 @@ export const getAllBooks = async (userId: number): Promise<Book[]> => {
   }
 };
 
+export const getPublicPosts = async () => {
+  try {
+    const result = await db.query('SELECT books.*, users.user_id, users.name FROM books INNER JOIN users ON books.user_id = users.user_id WHERE books.is_public = true;');
+    console.log(result);
+    return result.rows;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const addBook = async (
   title: string,
@@ -108,7 +115,8 @@ export const addBook = async (
 ): Promise<void> => {
   const validCoverId = coverId === null ? null : (isNaN(parseInt(coverId)) ? null : parseInt(coverId));
   try {
-    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [title, author, validCoverId, review, rating, time, userId, isPublic]);
+    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', 
+      [title, author, validCoverId, review, rating, time, userId, isPublic]);
   } catch (error) {
     throw error;
   }

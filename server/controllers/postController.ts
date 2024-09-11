@@ -97,3 +97,20 @@ export const deleteBook = async (req: Request, res: Response, next: NextFunction
     res.status(500).json({ success: false, message: "Failed to delete book" });
   }
 }
+
+
+export const getPublicPosts = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    // Veritabanından yalnızca 'is_public' true olan postları çekiyoruz
+    const publicPosts = await postModel.getPublicPosts();
+
+    if (publicPosts) {
+      return res.status(200).json({ success: true, posts: publicPosts });
+    } else {
+      return res.status(404).json({ success: false, message: 'No public posts found' });
+    }
+  } catch (error) {
+    console.error('Error fetching public posts:', error);
+    return res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+};
