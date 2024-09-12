@@ -4,9 +4,6 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import SortDropdown from '../components/SortDropdown';
 import BookPost from '../components/BookPost';
-import { useAuth } from '../contexts/AuthContext'; // AuthContext'ten user bilgisini çekmek için
-import { useNavigate } from 'react-router-dom'; // useNavigate'i ekliyoruz
-
 
 const BooksPage: React.FC = () => {
   interface Post {
@@ -21,27 +18,12 @@ const BooksPage: React.FC = () => {
   }
 
   const [posts, setPosts] = useState<Post[]>([]);
-  const { user, setUser } = useAuth();
-  const navigate = useNavigate(); // useNavigate'i kullanıyoruz
+
 
   useEffect(() => {
     // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
     handleSort('rto');
   }, []);
-
-  const handleLogout = async () => {
-    try {
-      await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/logout`, {
-        withCredentials: true, // Oturum çerezlerini içermesini sağlar
-      });
-      setUser(null);
-      console.log('Logged out')
-      navigate('/'); // useNavigate ile yönlendiriyoruz
-    } catch (error) {
-      console.error('Logout failed:', error);
-      alert('Logout failed. Please try again.');
-    }
-  };
 
   const handleSort = async (sortType: string) => {
     try {
@@ -94,7 +76,7 @@ const BooksPage: React.FC = () => {
 
   return (
     <div>
-      <Header onLogout={handleLogout} />
+      <Header/>
       <SearchBar />
       <SortDropdown onSort={handleSort} />
       <div className="row d-flex flex-column gap-2 justify-content-center align-content-center mx-lg-5 px-5 py-1">
