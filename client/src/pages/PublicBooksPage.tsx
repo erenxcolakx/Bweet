@@ -15,6 +15,7 @@ interface Post {
     cover_id: string;
     is_public: boolean;
     name: string;
+    user_id: number;
   }
 
 const PublicBooksPage: React.FC = () => {
@@ -41,7 +42,7 @@ const PublicBooksPage: React.FC = () => {
     };
 
     fetchPublicPosts();
-  });
+  }, [navigate, user]);
 
   return (
     <div>

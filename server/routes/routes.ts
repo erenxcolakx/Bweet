@@ -19,6 +19,7 @@ router.route("/api/edit").post(auth.isAuthenticated, postController.updateBook);
 router.route("/api/sort").post(auth.isAuthenticated, postController.sortBooks);
 router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deleteBook);
 router.route("/api/home").get(auth.isAuthenticated, postController.getPublicPosts);
+router.route("/api/user/:id").get(auth.isAuthenticated, profileController.getUserInfo);
 
 
 export default router;

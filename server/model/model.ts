@@ -26,6 +26,39 @@ export const getUserById = async (user_id: number) => {
   }
 };
 
+export const getPublicUserInfosById = async (user_id: number) => {
+  try {
+    const result = await db.query(`
+      SELECT
+        u.user_id,
+        u.name,
+        b.id,
+        b.title,
+        b.author,
+        b.review,
+        b.is_public
+      FROM users u
+      LEFT JOIN books b ON u.user_id = b.user_id
+      WHERE u.user_id = $1 AND (b.is_public = true OR b.is_public IS NULL)
+    `, [user_id]);
+
+    // Kullanıcı bilgileri ve public kitaplar
+    const userInfo = {
+      user_id: result.rows[0].user_id,
+      name: result.rows[0].name,
+      books: result.rows.filter(row => row.book_id !== null).map(row => ({
+        book_id: row.book_id,
+        title: row.title,
+        author: row.author
+      }))
+    };
+
+    return userInfo;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const updateUserName = async (user_id: number, name: string) => {
   try {
     const result = await db.query('UPDATE users SET name = $1 WHERE user_id = $2 RETURNING *', [name, user_id]);

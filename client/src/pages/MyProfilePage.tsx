@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext'; // Assuming you have an AuthContext for user data
 import { useNavigate } from 'react-router-dom'; // Use navigate for redirection
 
-const ProfilePage: React.FC = () => {
+const MyProfilePage: React.FC = () => {
   const { user, setUser } = useAuth(); // Retrieve user data from context
   const [profileData, setProfileData] = useState({ email: '', name: '' });
   const [isEditing, setIsEditing] = useState(false);
@@ -106,4 +106,4 @@ const ProfilePage: React.FC = () => {
   );
 };
 
-export default ProfilePage;
+export default MyProfilePage;

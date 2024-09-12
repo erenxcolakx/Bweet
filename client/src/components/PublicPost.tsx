@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 interface Post {
   id: number;
@@ -10,6 +11,7 @@ interface Post {
   cover_id: string;
   is_public: boolean;
   name: string;
+  user_id: number;
 }
 
 interface PublicPostProps {
@@ -19,9 +21,14 @@ interface PublicPostProps {
 const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
   const [isImageExpanded, setIsImageExpanded] = useState(false); // Fotoğrafın büyüme durumu
   const roundedRating = Math.round(post.rating);
+  const navigate = useNavigate();
 
   const handleImageClick = () => {
     setIsImageExpanded(!isImageExpanded); // Fotoğraf tıklandığında büyütme/daraltma
+  };
+
+  const handleUserProfileClick = () => {
+    navigate(`/user/${post.user_id}`); // Profil sayfasına yönlendirme
   };
 
   return (
@@ -29,14 +36,14 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
       <div className="row g-0">
         <div className="col-md-3 d-flex justify-content-center align-items-center p-2">
           <img
-            className={`img-fluid rounded-3 ${isImageExpanded ? 'expanded' : ''}`} // Duruma göre sınıf ekleniyor
+            className={`img-fluid rounded-3 ${isImageExpanded ? 'expanded' : ''}`}
             style={{
-              maxWidth: isImageExpanded ? '300px' : '180px', // Büyüklük değişiyor
+              maxWidth: isImageExpanded ? '300px' : '180px',
               maxHeight: isImageExpanded ? '300px' : '180px',
               cursor: 'pointer',
-              transition: 'all 0.3s ease-in-out', // Yumuşak geçiş
+              transition: 'all 0.3s ease-in-out',
             }}
-            onClick={handleImageClick} // Tıklama olayını bağla
+            onClick={handleImageClick}
             src={`https://covers.openlibrary.org/b/id/${post.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
             alt={post.title}
           />
@@ -46,17 +53,24 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
             <div className="d-flex justify-content-between align-items-center">
               <div className="d-flex flex-column">
                 <div className="d-flex align-items-center mb-2">
-                  {/* Profil Resmi Div'i */}
                   <div
-                    className="rounded-circle d-flex justify-content-center align-items-center bg-dark text-white"
-                    style={{ width: '40px', height: '40px', fontSize: '20px' }}
+                    className="rounded-circle d-flex justify-content-center align-items-center"
+                    onClick={handleUserProfileClick}
+                    style={{
+                      width: '40px',
+                      height: '40px',
+                      fontSize: '20px',
+                      backgroundColor: !post.name || post.name === 'Anonym' ? '#ffffff' : '#000000',
+                      color: !post.name || post.name === 'Anonym' ? '#000000' : '#ffffff',
+                      border: !post.name || post.name === 'Anonym' ? '1px solid #000000' : '1px solid #ffffff',
+                      cursor: 'pointer'
+                    }}
                   >
-                    {/* Eğer isim varsa ilk harf, yoksa "-" */}
                     {post.name ? post.name.charAt(0).toUpperCase() : '-'}
                   </div>
-                  {/* Kullanıcı Bilgisi */}
+                  {/* Kullanıcı Bilgisi, tıklanabilir olacak */}
                   <div className="ms-2">
-                    <h6 className="card-title mb-1">{post.name ? post.name : 'Anonym'}</h6>
+                    <h6 className="card-title mb-1" onClick={handleUserProfileClick} style={{ cursor: 'pointer' }}>{post.name ? post.name : 'Anonym'}</h6>
                     <span className="text-black fw-bold">{post.title}</span>
                     <span className="text-muted">
                       {' '}
