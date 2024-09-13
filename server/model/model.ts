@@ -32,11 +32,7 @@ export const getPublicUserInfosById = async (user_id: number) => {
       SELECT
         u.user_id,
         u.name,
-        b.id,
-        b.title,
-        b.author,
-        b.review,
-        b.is_public
+        b.*
       FROM users u
       LEFT JOIN books b ON u.user_id = b.user_id
       WHERE u.user_id = $1 AND (b.is_public = true OR b.is_public IS NULL)
@@ -49,7 +45,12 @@ export const getPublicUserInfosById = async (user_id: number) => {
       books: result.rows.filter(row => row.book_id !== null).map(row => ({
         book_id: row.book_id,
         title: row.title,
-        author: row.author
+        author: row.author,
+        review: row.review,
+        rating: row.rating,
+        cover_id: row.cover_id,  // Kitap kapağı bilgisi
+        is_public: row.is_public, // Public durumu
+        time: row.time // Yayın tarihi
       }))
     };
 
@@ -58,6 +59,7 @@ export const getPublicUserInfosById = async (user_id: number) => {
     throw error;
   }
 };
+
 
 export const updateUserName = async (user_id: number, name: string) => {
   try {
