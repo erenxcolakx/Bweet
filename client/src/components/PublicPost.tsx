@@ -55,7 +55,7 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
                 <div className="d-flex align-items-center mb-2">
                   <div
                     className="rounded-circle d-flex justify-content-center align-items-center"
-                    onClick={handleUserProfileClick}
+                    onClick={post.name ? handleUserProfileClick : undefined}
                     style={{
                       width: '40px',
                       height: '40px',
@@ -63,14 +63,20 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
                       backgroundColor: !post.name || post.name === 'Anonym' ? '#ffffff' : '#000000',
                       color: !post.name || post.name === 'Anonym' ? '#000000' : '#ffffff',
                       border: !post.name || post.name === 'Anonym' ? '1px solid #000000' : '1px solid #ffffff',
-                      cursor: 'pointer'
+                      cursor: post.name ? 'pointer' : 'default'
                     }}
                   >
                     {post.name ? post.name.charAt(0).toUpperCase() : '-'}
                   </div>
                   {/* Kullanıcı Bilgisi, tıklanabilir olacak */}
                   <div className="ms-2">
-                    <h6 className="card-title mb-1" onClick={handleUserProfileClick} style={{ cursor: 'pointer' }}>{post.name ? post.name : 'Anonym'}</h6>
+                    <h6
+                      className="card-title mb-1"
+                      onClick={post.name ? handleUserProfileClick : undefined} // Eğer post.name yoksa onClick'i devre dışı bırak
+                      style={{ cursor: post.name ? 'pointer' : 'default' }} // Cursor işaretçisi tıklanabilirlik durumuna göre değişir
+                    >
+                      {post.name ? post.name : 'Anonym'}
+                    </h6>
                     <span className="text-black fw-bold">{post.title}</span>
                     <span className="text-muted">
                       {' '}

@@ -16,12 +16,13 @@ interface Post {
     is_public: boolean;
     name: string;
     user_id: number;
-  }
+}
 
 const PublicBooksPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const { user } = useAuth();
   const navigate = useNavigate();
+
   // Public postları API'den al
   useEffect(() => {
     const fetchPublicPosts = async () => {
@@ -34,7 +35,11 @@ const PublicBooksPage: React.FC = () => {
           withCredentials: true,
         });
         if (response.data.success) {
-          setPosts(response.data.posts);
+          // Postları tarihe göre yeniden eskiye sıralama
+          const sortedPosts = response.data.posts.sort((a: Post, b: Post) => {
+            return new Date(b.time).getTime() - new Date(a.time).getTime();
+          });
+          setPosts(sortedPosts);
         }
       } catch (error) {
         console.error('Failed to fetch public posts:', error);
