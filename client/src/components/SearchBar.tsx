@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState }from 'react';
 import axios from 'axios';
 import '../styles/Suggestion.css';
-import '../styles/ReviewModal.css'
+import '../styles/ReviewModal.css';
 import ReviewModal from '../modals/ReviewModal'; // Bileşeni yeni ismiyle import edin
 import { useAuth } from '../contexts/AuthContext';
 
@@ -11,16 +11,28 @@ const SearchBar: React.FC = () => {
   const [selectedSuggestion, setSelectedSuggestion] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { user } = useAuth();
+  const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    setQuery(e.target.value);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    setQuery(inputValue);
 
-    if (e.target.value.length > 2) {
-      const searchResults = await fetchData(e.target.value);
-      setSuggestions(searchResults);
-    } else {
-      setSuggestions([]);
+    // Debounce ayarı: Mevcut timeout'u temizle
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout);
     }
+
+    // Kullanıcı yazmayı bitirene kadar bekle, ardından istek gönder
+    const newTimeout = setTimeout(async () => {
+      if (inputValue.length > 2) {
+        const searchResults = await fetchData(inputValue);
+        setSuggestions(searchResults);
+      } else {
+        setSuggestions([]);
+      }
+    }, 600); // 500ms gecikme ayarlandı
+
+    setDebounceTimeout(newTimeout);
   };
 
   const handleSuggestionClick = (suggestion: any) => {
@@ -35,17 +47,21 @@ const SearchBar: React.FC = () => {
 
   const handleModalSubmit = async (rating: number, review: string, isPublic: boolean) => {
     try {
-      await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/submit`, {
-        title: selectedSuggestion.title,
-        author: selectedSuggestion.authorName,
-        coverId: selectedSuggestion.coverId,
-        rating,
-        review,
-        isPublic,
-        userId: user?.userId, // AuthContext'ten gelen kullanıcı ID'sini ekliyoruz
-      }, {
-        withCredentials: true // Session cookie'lerinin gönderilmesi için
-      });
+      await axios.post(
+        `${process.env.REACT_APP_AUTH_ADDRESS}/api/submit`,
+        {
+          title: selectedSuggestion.title,
+          author: selectedSuggestion.authorName,
+          coverId: selectedSuggestion.coverId,
+          rating,
+          review,
+          isPublic,
+          userId: user?.userId, // AuthContext'ten gelen kullanıcı ID'sini ekliyoruz
+        },
+        {
+          withCredentials: true, // Session cookie'lerinin gönderilmesi için
+        }
+      );
 
       closeModal();
       window.location.reload();
@@ -75,15 +91,15 @@ const SearchBar: React.FC = () => {
                 onClick={() => handleSuggestionClick(suggestion)}
                 style={{ cursor: 'pointer' }}
               >
-                <div className='d-flex align-items-center'>
+                <div className="d-flex align-items-center">
                   <img
                     className="mini-book-img"
                     src={`https://covers.openlibrary.org/b/id/${suggestion.coverId}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
                     alt={suggestion.title}
                   />
-                  <p>
-                    <span className='suggestion-title'>{suggestion.title}</span> by{' '}
-                    <span className='suggestion-author'>{suggestion.authorName}</span>
+                  <p className="ms-2">
+                    <span className="suggestion-title">{suggestion.title}</span> by{' '}
+                    <span className="suggestion-author">{suggestion.authorName}</span>
                   </p>
                 </div>
               </li>
@@ -108,14 +124,16 @@ const SearchBar: React.FC = () => {
 
 async function fetchData(searchTerm: string) {
   try {
-    const response = await axios.get(`https://openlibrary.org/search.json?q=${searchTerm}&fields=title,author_name,first_publish_year,cover_i&limit=15`);
+    const response = await axios.get(
+      `https://openlibrary.org/search.json?q=${searchTerm}&fields=title,author_name,first_publish_year,cover_i&limit=15`
+    );
     const docs = response.data.docs;
 
-    const searchData = docs.map((doc:any) => {
-      const title = doc.title ? doc.title : "N/A";
-      const publishYear = doc.first_publish_year ? doc.first_publish_year : "N/A";
-      const coverId = doc.cover_i ? doc.cover_i : "N/A";
-      const authorName = doc.author_name ? doc.author_name[0] : "N/A";
+    const searchData = docs.map((doc: any) => {
+      const title = doc.title ? doc.title : 'N/A';
+      const publishYear = doc.first_publish_year ? doc.first_publish_year : 'N/A';
+      const coverId = doc.cover_i ? doc.cover_i : 'N/A';
+      const authorName = doc.author_name ? doc.author_name[0] : 'N/A';
 
       return {
         title: title,
@@ -127,7 +145,7 @@ async function fetchData(searchTerm: string) {
     console.log(searchData);
     return searchData;
   } catch (error) {
-    console.error("Error fetching data: ", error);
+    console.error('Error fetching data: ', error);
     return [];
   }
 }
