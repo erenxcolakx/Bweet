@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import PublicPost from '../components/PublicPost';
 import Header from '../components/Header';
+import FilterBookSearchBar from '../components/FilterBookSearchBar';
 
 interface Post {
     id: number;
@@ -52,6 +53,7 @@ const PublicBooksPage: React.FC = () => {
   return (
     <div>
       <Header/>
+      <FilterBookSearchBar/>
       {posts.map((post) => (
         <PublicPost key={post.id} post={post} />
       ))}

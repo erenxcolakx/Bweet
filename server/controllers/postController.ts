@@ -52,6 +52,24 @@ export const addBook = async (req: Request, res: Response, next: NextFunction) =
   }
 }
 
+export const searchBooks = async (req: Request, res: Response) => {
+  const { title } = req.query;
+
+  try {
+    if (!title) {
+      return res.status(400).json({ message: 'Title parameter is required' });
+    }
+
+    // Veritabanında başlığa göre arama (örnek MongoDB sorgusu)
+    const books = await postModel.searchBooks(title as string);
+
+    res.json(books);
+  } catch (error) {
+    console.error('Error searching books:', error);
+    res.status(500).json({ message: 'Error searching books' });
+  }
+};
+
 export const updateBook = async (req: Request, res: Response, next: NextFunction) => {
   const bookId = req.body.id;
   const editedReview = req.body.editedReview.trim();

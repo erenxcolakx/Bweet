@@ -14,6 +14,7 @@ router.route('/api/check-auth').get(auth.checkAuth);
 router.route("/api/logout").get(auth.handleLogout);
 router.route("/api/books").get(auth.isAuthenticated, postController.getPosts);
 router.route("/api/book").get(auth.isAuthenticated, postController.getBook);
+router.route("/api/books/search").get(auth.isAuthenticated, postController.searchBooks);
 router.route("/api/submit").post(auth.isAuthenticated, postController.addBook);
 router.route("/api/edit").post(auth.isAuthenticated, postController.updateBook);
 router.route("/api/sort").post(auth.isAuthenticated, postController.sortBooks);

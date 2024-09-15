@@ -176,6 +176,29 @@ export const updateBook = async (
   }
 };
 
+export const searchBooks = async (searchTerm: string): Promise<any[]> => {
+  try {
+    // SQL sorgusu: title alanında arama ve is_public == true kontrolü
+    const result = await db.query(
+      `SELECT id, title, author, cover_id FROM books WHERE is_public = true AND LOWER(title) LIKE LOWER($1)`,
+      [`%${searchTerm}%`] // SQL'de LIKE araması için '%' işareti kullanılır
+    );
+    console.log
+    return result.rows; // Sonuçları döndürüyoruz
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+export const getBookById = async (bookId: number) => {
+  try {
+    const result = await db.query('SELECT * FROM books WHERE id = $1', [bookId]);
+    return result.rows[0]; // Kitap detayını döndür
+  } catch (error) {
+    throw error;
+  }
+};
 
 
 // Delete post function
