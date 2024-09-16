@@ -33,6 +33,34 @@ export const getBook = async (req: Request, res: Response, next: NextFunction) =
   });
 }
 
+export const getBookReviews = async (req: Request, res: Response) => {
+  const { bookId } = req.params; // URL'den bookId'yi alıyoruz
+  const userId = (req.session as CustomSession).user?.user_id; // Auth middleware'inden user id'yi alıyoruz (auth kullanıyorsanız)
+
+  try {
+    // Kitap detaylarını getiriyoruz
+    const book = await postModel.getBookById(parseInt(bookId, 10));
+
+    if (!book) {
+      return res.status(404).json({ success: false, message: 'Book not found' });
+    }
+
+    // Yorumları getiren fonksiyon (yorumlar veritabanında ise)
+    const reviews = await postModel.getBookReviewsByBookId(parseInt(bookId, 10));
+
+    res.status(200).json({
+      success: true,
+      message: 'Book details and comments retrieved successfully',
+      book: book,        // Kitap bilgileri
+      reviews: reviews, // Kitapla ilgili yorumlar
+      user: userId        // Kullanıcı bilgisi (auth kullanıyorsanız)
+    });
+  } catch (error) {
+    console.error('Error fetching book details and comments:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch book details and comments' });
+  }
+};
+
 export const addBook = async (req: Request, res: Response, next: NextFunction) => {
   const title = req.body.title;
   const author = req.body.author;
