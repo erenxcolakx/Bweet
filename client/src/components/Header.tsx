@@ -33,9 +33,9 @@ const Header: React.FC = () => {
   function navigateHomepage(): void {
     navigate("/home");
   }
-  
+
   return (
-    <header className="mb-3 border-bottom">
+    <header className="mb-3 border-bottom sticky-top bg-white">
       <div className="container-fluid d-flex flex-column gap-3 align-items-center" style={{ gridTemplateColumns: '1fr 2fr' }}>
         <nav className="navbar container d-flex flex-column flex-md-row justify-content-md-between justify-content-center">
           <div className="d-flex align-items-center justify-content-center">
