@@ -39,11 +39,12 @@ export const getPublicUserInfosById = async (user_id: number) => {
     `, [user_id]);
 
     // Kullanıcı bilgileri ve public kitaplar
+    console.log("getPublicUser -------------------------", result)
     const userInfo = {
       user_id: result.rows[0].user_id,
       name: result.rows[0].name,
-      books: result.rows.filter(row => row.book_id !== null).map(row => ({
-        book_id: row.book_id,
+      reviews: result.rows.filter(row => row.book_id !== null).map(row => ({
+        review_id: row.id,
         title: row.title,
         author: row.author,
         review: row.review,
@@ -108,7 +109,7 @@ export const verifyUser = async (userId: number) => {
   }
 };
 
-interface Book {
+interface Review {
   id: number;
   title: string;
   author: string;
@@ -119,7 +120,7 @@ interface Book {
   user_id: number;
 }
 
-export const getAllBooks = async (userId: number): Promise<Book[]> => {
+export const getAllPosts = async (userId: number): Promise<Review[]> => {
   try {
     const result = await db.query('SELECT * FROM books WHERE user_id = $1', [userId]);
     return result.rows;
@@ -131,14 +132,13 @@ export const getAllBooks = async (userId: number): Promise<Book[]> => {
 export const getPublicPosts = async () => {
   try {
     const result = await db.query('SELECT books.*, users.user_id, users.name FROM books INNER JOIN users ON books.user_id = users.user_id WHERE books.is_public = true;');
-    console.log(result);
     return result.rows;
   } catch (error) {
     throw error;
   }
 };
 
-export const addBook = async (
+export const addReview = async (
   title: string,
   author: string,
   coverId: string | null,
@@ -158,7 +158,7 @@ export const addBook = async (
 };
 
 
-export const updateBook = async (
+export const updateReview = async (
   postId: number,
   editedReview: string,
   editedRating: number,
@@ -183,7 +183,6 @@ export const searchBooks = async (searchTerm: string): Promise<any[]> => {
       `SELECT id, title, author, cover_id FROM books WHERE is_public = true AND LOWER(title) LIKE LOWER($1)`,
       [`%${searchTerm}%`] // SQL'de LIKE araması için '%' işareti kullanılır
     );
-    console.log
     return result.rows; // Sonuçları döndürüyoruz
   } catch (error) {
     throw error;
@@ -191,7 +190,7 @@ export const searchBooks = async (searchTerm: string): Promise<any[]> => {
 };
 
 
-export const getBookById = async (bookId: number) => {
+export const getReviewByBookId = async (bookId: number) => {
   try {
     const result = await db.query('SELECT * FROM books WHERE id = $1', [bookId]);
     return result.rows[0]; // Kitap detayını döndür
@@ -200,9 +199,25 @@ export const getBookById = async (bookId: number) => {
   }
 };
 
+export const getBookReviewsByBookId = async (bookId: number) => {
+  try {
+    const result = await db.query(
+      `SELECT books.id, books.user_id, books.review, books.rating, books.time, users.name
+       FROM books
+       JOIN users ON books.user_id = users.user_id
+       WHERE books.id = $1
+       ORDER BY books.time DESC`,
+      [bookId]
+    );
+    return result.rows; // Yorumları döndürüyoruz
+  } catch (error: any) {
+    throw new Error(`Error fetching comments for book with ID ${bookId}: ${error.message}`);
+  }
+};
+
 
 // Delete post function
-export const deleteBook = async (postId: number, userId: number): Promise<void> => {
+export const deleteReview = async (postId: number, userId: number): Promise<void> => {
   try {
     await db.query('DELETE FROM books WHERE id = $1 AND user_id = $2', [postId, userId]);
   } catch (error) {
@@ -211,7 +226,7 @@ export const deleteBook = async (postId: number, userId: number): Promise<void> 
 };
 
 
-export const getSortedBooks = async (sortType: string, userId: number): Promise<Book[]> => {
+export const getSortedReviews = async (sortType: string, userId: number): Promise<Review[]> => {
   switch (sortType) {
     case "htl":
       return await db.query('SELECT * FROM books WHERE user_id = $1 ORDER BY rating DESC', [userId]).then(result => result.rows);

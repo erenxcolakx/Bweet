@@ -3,9 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
+import '../styles/PostStyles.css'
 
-interface Book {
-  book_id: number;
+
+interface Review {
+  review_id: number;
   title: string;
   author: string;
   review: string;
@@ -21,7 +23,7 @@ interface UserProfile {
   bio?: string;
   profileImage?: string;
   email?: string;
-  books: Book[]; // Kullanıcının public kitapları
+  reviews: Review[]; // Kullanıcının public kitapları
 }
 
 const UserPage: React.FC = () => {
@@ -31,6 +33,10 @@ const UserPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  const handleBookClick = (bookId: number) => {
+    navigate(`/books/${bookId}`); // Kitap sayfasına yönlendirme
+  };
 
   useEffect(() => {
     if (!user) {
@@ -80,10 +86,10 @@ const UserPage: React.FC = () => {
         {/* Kullanıcının Public Kitapları */}
         <div className="user-books mt-5">
           <h2>Published reviews by {targetUser.name}</h2>
-          {targetUser.books.length > 0 ? (
+          {targetUser.reviews.length > 0 ? (
             <div className="row justify-content-evenly">
-              {targetUser.books.map((book) => (
-                <div className="col-md-4 mb-4" key={book.book_id}>
+              {targetUser.reviews.map((review) => (
+                <div className="post col-md-4 mb-4 " key={review.review_id}>
                   <div className="card h-100" style={{ border: '1px solid #dee2e6' }}>
                     <div className="d-flex justify-content-center align-items-center p-2">
                       <img
@@ -93,34 +99,34 @@ const UserPage: React.FC = () => {
                           maxHeight: '180px',
                           transition: 'all 0.3s ease-in-out',
                         }}
-                        src={`https://covers.openlibrary.org/b/id/${book.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
-                        alt={book.title}
+                        src={`https://covers.openlibrary.org/b/id/${review.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
+                        alt={review.title}
                       />
                     </div>
                     <div className="card-body d-flex flex-column justify-content-around">
                       <div className="d-flex justify-content-center align-items-center">
                         <div className="d-flex flex-column">
                           <div className="d-flex flex-column justify-content-center">
-                              <h6 className="card-title mb-1 oswald-mid " style={{fontSize:"25px"}}>{book.title}</h6>
-                              <span className="text-black text-center fw-light fst-italic">{book.author}</span>
+                              <h6 className="card-title mb-1 oswald-mid book-text" onClick={()=>handleBookClick(review.review_id)} style={{fontSize:"25px"}}>{review.title}</h6>
+                              <span className="text-black text-center fw-light fst-italic">{review.author}</span>
                           </div>
                         </div>
                       </div>
                       <p
                         className="card-text mt-2 text-center overflow-auto"
                         style={{ maxHeight: '100px', maxWidth: '100%', margin: '0 auto', wordBreak: 'break-word' }}>
-                        {book.review}
+                        {review.review}
                       </p>
 
                       <div className="d-flex align-items-center justify-content-center">
                         <div className="text-warning" style={{ fontSize: '16px' }}>
-                          {Array.from({ length: book.rating }, (_, i) => (
+                          {Array.from({ length: review.rating }, (_, i) => (
                             <span key={i}>⭐</span>
                           ))}
                         </div>
-                        <span className="ms-2 text-muted">{book.rating}/5</span>
+                        <span className="ms-2 text-muted">{review.rating}/5</span>
                       </div>
-                      <small className="d-flex text-muted mt-3 justify-content-center">{new Date(book.time).toLocaleDateString()}</small>
+                      <small className="d-flex text-muted mt-3 justify-content-center">{new Date(review.time).toLocaleDateString()}</small>
                     </div>
                   </div>
                 </div>

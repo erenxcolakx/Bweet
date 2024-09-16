@@ -13,13 +13,12 @@ router.route('/api/delete-account').post(auth.isAuthenticated, auth.deleteAccoun
 router.route('/api/check-auth').get(auth.checkAuth);
 router.route("/api/logout").get(auth.handleLogout);
 router.route("/api/books").get(auth.isAuthenticated, postController.getPosts);
-router.route("/api/book").get(auth.isAuthenticated, postController.getBook);
 router.route("/api/books/search").get(auth.isAuthenticated, postController.searchBooks);
 router.route('/api/books/:bookId').get(auth.isAuthenticated, postController.getBookReviews);
-router.route("/api/submit").post(auth.isAuthenticated, postController.addBook);
-router.route("/api/edit").post(auth.isAuthenticated, postController.updateBook);
-router.route("/api/sort").post(auth.isAuthenticated, postController.sortBooks);
-router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deleteBook);
+router.route("/api/submit").post(auth.isAuthenticated, postController.addReview);
+router.route("/api/edit").post(auth.isAuthenticated, postController.updateReview);
+router.route("/api/sort").post(auth.isAuthenticated, postController.sortReviews);
+router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deleteReview);
 router.route("/api/home").get(auth.isAuthenticated, postController.getPublicPosts);
 router.route("/api/user/:id").get(auth.isAuthenticated, profileController.getUserInfo);
 

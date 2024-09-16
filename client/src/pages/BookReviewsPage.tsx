@@ -26,11 +26,7 @@ const BookReviews: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]); // Yorumları tutmak için state
   const [book, setBook] = useState<Book | null>(null); // Kitap detaylarını tutmak için state
   const [loading, setLoading] = useState<boolean>(true); // Yükleme durumunu tutmak için
-  const [isImageExpanded, setIsImageExpanded] = useState(false);
 
-  const handleImageClick = () => {
-    setIsImageExpanded(!isImageExpanded); // Fotoğraf tıklandığında büyütme/daraltma
-  };
 
   useEffect(() => {
     const fetchBookReviews = async () => {

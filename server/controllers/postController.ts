@@ -12,25 +12,12 @@ interface CustomSession extends Session {
 export const getPosts = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userId = (req.session as CustomSession).user.user_id;
-    const posts = await postModel.getAllBooks(userId);
+    const posts = await postModel.getAllPosts(userId);
     res.status(200).json({ success: true, posts, user: (req.session as CustomSession).user.email });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, message: "Failed to retrieve posts" });
   }
-}
-
-export const getBook = async (req: Request, res: Response, next: NextFunction) => {
-  const title = req.query.title as string;
-  const author = req.query.author as string;
-  const coverId = req.query.coverId as string;
-  res.status(200).json({
-    success: true,
-    title,
-    author,
-    coverId,
-    user: (req.session as CustomSession).user.email
-  });
 }
 
 export const getBookReviews = async (req: Request, res: Response) => {
@@ -39,7 +26,7 @@ export const getBookReviews = async (req: Request, res: Response) => {
 
   try {
     // Kitap detaylarını getiriyoruz
-    const book = await postModel.getBookById(parseInt(bookId, 10));
+    const book = await postModel.getReviewByBookId(parseInt(bookId, 10));
 
     if (!book) {
       return res.status(404).json({ success: false, message: 'Book not found' });
@@ -61,7 +48,7 @@ export const getBookReviews = async (req: Request, res: Response) => {
   }
 };
 
-export const addBook = async (req: Request, res: Response, next: NextFunction) => {
+export const addReview = async (req: Request, res: Response, next: NextFunction) => {
   const title = req.body.title;
   const author = req.body.author;
   const coverId = req.body.coverId;
@@ -72,7 +59,7 @@ export const addBook = async (req: Request, res: Response, next: NextFunction) =
   const userId = (req.session as CustomSession).user.user_id;
 
   try {
-    const result = await postModel.addBook(title, author, coverId, review, rating, time, userId, isPublic);
+    const result = await postModel.addReview(title, author, coverId, review, rating, time, userId, isPublic);
     res.status(201).json({ success: true, message: "Book added successfully", result: result });
   } catch (error) {
     console.error("Error adding book:", error);
@@ -88,7 +75,6 @@ export const searchBooks = async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Title parameter is required' });
     }
 
-    // Veritabanında başlığa göre arama (örnek MongoDB sorgusu)
     const books = await postModel.searchBooks(title as string);
 
     res.json(books);
@@ -98,8 +84,8 @@ export const searchBooks = async (req: Request, res: Response) => {
   }
 };
 
-export const updateBook = async (req: Request, res: Response, next: NextFunction) => {
-  const bookId = req.body.id;
+export const updateReview = async (req: Request, res: Response, next: NextFunction) => {
+  const reviewId = req.body.id;
   const editedReview = req.body.editedReview.trim();
   const editedRating = req.body.editedRating;
   const isPublic = req.body.isPublic;
@@ -108,7 +94,7 @@ export const updateBook = async (req: Request, res: Response, next: NextFunction
 
   try {
     // Call the updated model function to handle review, rating, and public status
-    const result = await postModel.updateBook(bookId, editedReview, editedRating, isPublic, time, userId);
+    const result = await postModel.updateReview(reviewId, editedReview, editedRating, isPublic, time, userId);
 
     res.status(200).json({ success: true, message: "Book updated successfully" });
   } catch (error) {
@@ -118,29 +104,29 @@ export const updateBook = async (req: Request, res: Response, next: NextFunction
 }
 
 
-export const sortBooks = async (req: Request, res: Response, next: NextFunction) => {
+export const sortReviews = async (req: Request, res: Response, next: NextFunction) => {
   const sortType = req.body.sortType;
   const userId = (req.session as CustomSession).user.user_id;
 
   try {
-    const posts = await postModel.getSortedBooks(sortType, userId);
+    const posts = await postModel.getSortedReviews(sortType, userId);
     res.status(200).json({ success: true, posts });
   } catch (error) {
-    console.error("Error while sorting books:", error);
-    res.status(500).json({ success: false, message: "Failed to sort books" });
+    console.error("Error while sorting book reviews:", error);
+    res.status(500).json({ success: false, message: "Failed to sort book reviews" });
   }
 }
 
-export const deleteBook = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteReview = async (req: Request, res: Response, next: NextFunction) => {
   const postId = Number(req.params.id);
   const userId = (req.session as CustomSession).user.user_id;
 
   try {
-    const result = await postModel.deleteBook(postId, userId);
-    res.status(200).json({ success: true, message: "Book deleted successfully" });
+    const result = await postModel.deleteReview(postId, userId);
+    res.status(200).json({ success: true, message: "Book review deleted successfully" });
   } catch (error) {
-    console.error("Error deleting book:", error);
-    res.status(500).json({ success: false, message: "Failed to delete book" });
+    console.error("Error deleting book review:", error);
+    res.status(500).json({ success: false, message: "Failed to delete book review" });
   }
 }
 
