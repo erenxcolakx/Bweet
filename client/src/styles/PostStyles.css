@@ -1,0 +1,29 @@
+.post{
+    .book-text {
+        color: black;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .book-text:hover {
+        color: rgb(64, 0, 191); /* Üzerine gelindiğinde rengi kırmızı yap */
+      }
+    
+    .user-name-text{
+        color: rgb(51, 51, 51);
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .user-name-text:hover{
+        color: rgb(64, 0, 191); /* Üzerine gelindiğinde rengi kırmızı yap */
+      }
+    .user-profile-img{
+        width: 40px;
+        height:  40px;
+        font-size:  20px;
+      }
+      .user-profile-img:hover{
+        border-color: rgb(64, 0, 191) !important; /* Üzerine gelindiğinde çerçeve rengi kırmızı olsun */
+        background-color: rgb(64, 0, 191) !important; /* Üzerine gelindiğinde rengi kırmızı yap */
+
+    }
+}

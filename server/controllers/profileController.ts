@@ -11,7 +11,6 @@ interface CustomSession extends Session {
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // Assuming the user is logged in and the user ID is stored in the session
     const userId = (req.session as CustomSession).user?.user_id;
     if (!userId) {
       return res.status(401).json({ success: false, message: "User not authenticated" });
@@ -38,20 +37,44 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
   }
 };
 
+export const getUserInfo = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const loggedUserId = (req.session as CustomSession).user?.user_id;
+    if (!loggedUserId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
+    const userId = req.params.id;
+
+    // Fetch user profile from the database using the userId
+    const user = await authModel.getPublicUserInfosById(Number(userId));
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Send back the user profile data
+    return res.status(200).json({
+      success: true,
+      user: {
+        user_id: user.user_id,
+        name: user.name,
+        reviews: user.reviews // Kullanıcının public kitaplarını da ekliyoruz
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching profile:', error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
 export const updateProfile = async (req: Request, res: Response, next: NextFunction) => {
     const { name } = req.body;
-  
-    // Kullanıcının oturum bilgilerini session'dan alın
     const userId = (req.session as CustomSession).user?.user_id;
-  
     if (!userId) {
       return res.status(401).json({ success: false, message: 'User not authenticated' });
     }
-  
     try {
-      // Veritabanında kullanıcının adını güncelle
       const result = await authModel.updateUserName(userId, name);
-      
       if (result) {
         return res.status(200).json({ success: true, message: 'Profile updated successfully' });
       } else {
