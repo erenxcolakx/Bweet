@@ -31,7 +31,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
     }
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/register`, {
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/register`, {
         username: email,
         password: password
       });
@@ -50,12 +50,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
     }
   };
 
+
   return (
-    <div className="col-sm-8">
-      <div className="card">
+    <div className="col-12 col-md-8"> {/* Genişliği artırdık */}
+      <div className="card shadow-sm"> {/* Gölge eklendi */}
         <div className="card-body">
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
+            <div className="form-group mb-3"> {/* Alt boşluk eklendi */}
               <label htmlFor="email" className="josefin-sans-1">Email</label>
               <input
                 id="email"
@@ -68,7 +69,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
                 autoComplete='username'
               />
             </div>
-            <div className="form-group">
+            <div className="form-group mb-3"> {/* Alt boşluk eklendi */}
               <label htmlFor="password" className="josefin-sans-1">Password</label>
               <input
                 id="password"
@@ -81,15 +82,12 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ error }) => {
                 autoComplete='current-password'
                 minLength={8}
               />
-              {passwordError && <p style={{ color: 'red' }}>{passwordError}</p>}
+              {passwordError && <p className="text-danger mt-2">{passwordError}</p>} {/* Hata mesajı stilize edildi */}
             </div>
-            {localError && <p style={{ color: 'red' }}>{localError}</p>} {/* Hata mesajı */}
-            <div className="d-flex flex-row flex-wrap justify-content-between mt-2">
-              <button type="submit" className="btn btn-warning">Register</button>
-              <div className="d-flex g-2 justify-content-md-between flex-column flex-md-row" style={{ gap: '4px' }}>
-                <h6 className="mt-3 pe-1 align-items-center josefin-sans-1 ps-2">Do you have an account?</h6>
-                <a href="/login" className="btn btn-outline-warning align-self-center">Log in Here</a>
-              </div>
+            {localError && <p className="text-danger mt-2">{localError}</p>} {/* Hata mesajı */}
+            <div className="d-flex flex-wrap justify-content-between mt-3 gap-3"> {/* Butonlar arası boşluk artırıldı */}
+              <button type="submit" className="btn btn-warning px-4">Register</button> {/* Düğme genişliği artırıldı */}
+              <a href="/login" className="btn btn-outline-warning px-4">Log in Here</a> {/* İkinci düğme ile uyumlu yapıldı */}
             </div>
           </form>
         </div>

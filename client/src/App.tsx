@@ -16,6 +16,7 @@ import MyProfilePage from './pages/MyProfilePage';
 import PublicBooksPage from './pages/PublicBooksPage';
 import UserPage from './pages/UserPage';
 import BookReviewsPage from './pages/BookReviewsPage';
+import GoogleAuthCallback from './components/GoogleAuthCallback';
 
 
 // Korunan rotalar için bir bileşen oluşturuyoruz
@@ -41,6 +42,7 @@ const App: React.FC = () => {
           <Route path='/myprofile' element={<MyProfilePage />} />
           <Route path='/home' element={<ProtectedRoute element={<PublicBooksPage />} />} />
           <Route path="/user/:id" element={<ProtectedRoute element={<UserPage />} />} />
+          <Route path="/google/callback" element={<ProtectedRoute element={<GoogleAuthCallback />} />} />
         </Routes>
       </Router>
     </AuthProvider>
