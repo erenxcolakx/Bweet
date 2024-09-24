@@ -21,7 +21,7 @@ const MyProfilePage: React.FC = () => {
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/profile`, { withCredentials: true });
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/profile`, { withCredentials: true });
         if (response.data.success) {
           setProfileData(response.data.user);
           setName(response.data.user.name); // To prefill the name in the edit form
@@ -45,7 +45,7 @@ const MyProfilePage: React.FC = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/profile/update`, {
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/profile/update`, {
         name: name,
       }, { withCredentials: true });
 
@@ -63,7 +63,7 @@ const MyProfilePage: React.FC = () => {
 
     if (confirmDelete) {
       try {
-        const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/delete-account`, {}, { withCredentials: true });
+        const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/delete-account`, {}, { withCredentials: true });
 
         if (response.data.success) {
           setUser(null); // Clear the user from context

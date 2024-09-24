@@ -21,7 +21,7 @@ const VerifyEmailPage: React.FC = () => {
       }
 
       try {
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/verify-email?token=${token}`);
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/verify-email?token=${token}`);
         if (response.data.success) {
           setMessage('Email verified successfully! Redirecting to login page...');
           setIsSuccess(true);

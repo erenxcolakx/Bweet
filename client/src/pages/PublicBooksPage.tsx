@@ -32,7 +32,7 @@ const PublicBooksPage: React.FC = () => {
         return;
       }
       try {
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/home`, {
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/home`, {
           withCredentials: true,
         });
         if (response.data.success) {

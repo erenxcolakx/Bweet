@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const syncWithBackend = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/check-auth`, {
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
           withCredentials: true, // Session çerezlerini backend'e gönder
         });
 

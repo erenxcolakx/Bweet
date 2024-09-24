@@ -46,7 +46,7 @@ const UserPage: React.FC = () => {
 
     const fetchUserProfile = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/user/${id}`, {
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/user/${id}`, {
           withCredentials: true,
         });
         setTargetUser(response.data.user); // Backend'den gelen "user" verisi kullanılıyor

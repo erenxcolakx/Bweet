@@ -48,7 +48,7 @@ const SearchBar: React.FC = () => {
   const handleModalSubmit = async (rating: number, review: string, isPublic: boolean) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_AUTH_ADDRESS}/api/submit`,
+        `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`,
         {
           title: selectedSuggestion.title,
           author: selectedSuggestion.authorName,

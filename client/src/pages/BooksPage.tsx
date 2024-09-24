@@ -27,7 +27,7 @@ const BooksPage: React.FC = () => {
 
   const handleSort = async (sortType: string) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/sort`, { sortType }, {
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/sort`, { sortType }, {
         withCredentials: true
       });
       if (response.data.success) {
@@ -41,7 +41,7 @@ const BooksPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await axios.post(
-        `${process.env.REACT_APP_AUTH_ADDRESS}/api/delete/${id}`,
+        `${process.env.REACT_APP_SERVER_ADDRESS}/api/delete/${id}`,
         {}, // İkinci parametre olarak boş bir veri nesnesi gönderiyoruz
         {
           withCredentials: true, // Üçüncü parametre olarak yapılandırma nesnesi içinde withCredentials
@@ -55,7 +55,7 @@ const BooksPage: React.FC = () => {
 
   const handleUpdate = async (id: number, editedReview: string, editedRating: number, isPublic: boolean) => {
     try {
-      await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/edit`, {
+      await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/edit`, {
         id,
         editedReview,
         editedRating,
