@@ -1,11 +1,12 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom'; // useLocation'u ekledik
 import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu içe aktarıyoruz
 import axios from 'axios';
 
 const Header: React.FC = () => {
   const { user, setUser } = useAuth();  // user bilgisini ve setUser fonksiyonunu global state'den alıyoruz
   const navigate = useNavigate();
+  const location = useLocation(); // Mevcut adresi almak için kullanıyoruz
 
   // user nesnesinin email ve userId bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz
@@ -13,7 +14,7 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/logout`, {
+      await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/logout`, {
         withCredentials: true,  // Oturum çerezlerini içermesini sağlar
       });
       setUser(null);  // Kullanıcı bilgisini temizliyoruz
@@ -49,13 +50,31 @@ const Header: React.FC = () => {
               <div className="dropdown d-flex justify-content-center">
                 <ul className="nav flex-row gap-2 justify-content-center">
                   <li className="nav-item">
-                    <button type="button" className="btn" onClick={navigateHomepage}>Homepage</button>
+                    <button 
+                      type="button" 
+                      className={`btn ${location.pathname === '/home' ? 'active' : ''}`} // Aktif olan sayfaya göre 'active' sınıfı ekliyoruz
+                      onClick={navigateHomepage}
+                    >
+                      Homepage
+                    </button>
                   </li>
                   <li className="nav-item">
-                    <button type="button" className="btn" onClick={navigateMyBooksPage}>My Books</button>
+                    <button 
+                      type="button" 
+                      className={`btn ${location.pathname === '/books' ? 'active' : ''}`} // Aktif olan sayfaya göre 'active' sınıfı ekliyoruz
+                      onClick={navigateMyBooksPage}
+                    >
+                      My Books
+                    </button>
                   </li>
                   <li className="nav-item">
-                    <button type="button" className="btn" onClick={handleProfile}>My Profile</button>
+                    <button 
+                      type="button" 
+                      className={`btn ${location.pathname === '/myprofile' ? 'active' : ''}`} // Aktif olan sayfaya göre 'active' sınıfı ekliyoruz
+                      onClick={handleProfile}
+                    >
+                      My Profile
+                    </button>
                   </li>
                   <li className='nav-item dropdown'>
                     <a className="nav-link dropdown-toggle" role='button' href='/' type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -71,8 +90,8 @@ const Header: React.FC = () => {
               </div>
             ) : (
               <div className="d-flex gap-3">
-                <Link to="/login" className="btn btn-outline-dark">Login</Link>
-                <Link to="/register" className="btn btn-outline-dark">Register</Link>
+                <Link to="/login" className={`btn btn-outline-dark ${location.pathname === '/login' ? 'active' : ''}`}>Login</Link>
+                <Link to="/register" className={`btn btn-outline-dark ${location.pathname === '/register' ? 'active' : ''}`}>Register</Link>
               </div>
             )}
           </div>

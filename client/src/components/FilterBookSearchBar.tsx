@@ -35,7 +35,7 @@ const FilterBookSearchDB: React.FC = () => {
   // Kitaplar için database sorgusu yapıyoruz
   const fetchBooks = async (searchTerm: string) => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/books/search?title=${searchTerm}`, {
+      const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/books/search?title=${searchTerm}`, {
         withCredentials: true,
       }); // API isteği (örn. Express backend)
       return response.data; // Kitap listesini döndürür

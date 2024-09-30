@@ -1,16 +1,15 @@
-import express from "express";
-import session from "express-session";
-import bodyParser from "body-parser";
+import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
 import jwt from 'jsonwebtoken';
-
 import * as authModel from '../model/model.js';
 import * as emailModel from '../model/mailModel.js';
 import { sendVerificationEmail, generateVerificationToken } from '../model/mailModel.js';
-import env from 'dotenv';
-import { Request, Response, NextFunction } from 'express';
 import { Session } from 'express-session';
-import cors from 'cors';
+import passport from "passport";
+
+const saltRounds = 10;
+
+// Custom session interface
 interface CustomSession extends Session {
   user: {
     user_id: number;
@@ -18,43 +17,6 @@ interface CustomSession extends Session {
     name: string;
   };
 }
-
-const app = express();
-const port = 5000;
-const saltRounds = 10;
-env.config();
-
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:4000'], // Birden fazla URL'ye izin ver
-  methods: 'GET,POST,PUT,DELETE',
-  credentials: true
-}));
-
-
-if (!process.env.SECRET_KEY) {
-  throw new Error("SECRET_KEY environment variable is not defined");
-}
-
-app.use(session({
-  secret: process.env.SECRET_KEY,
-  resave: true,
-  saveUninitialized: true,
-  cookie: {
-      secure: false, // HTTPS üzerinde çalışıyorsanız true yapın
-      httpOnly: true, // Çerezlerin JavaScript tarafından okunmasını engeller
-      maxAge: 24 * 60 * 60 * 1000, // 24 saatlik oturum
-      sameSite: 'lax' // Çerezleri çapraz site saldırılarına karşı korur, isteklerin site içinden geldiğini doğrular
-  }
-}));
-
-
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-
-app.use((req: Request, res: Response, next: NextFunction) => {
-    res.locals.user = (req.session as CustomSession).user;
-    next();
-  });
 
 
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
@@ -66,33 +28,35 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
     if (result) {
       const user = result;
       const storedHashedPassword = user.password;
-
       // Şifre doğrulama
-      const isMatch = await bcrypt.compare(loginPassword, storedHashedPassword);
-      if (isMatch) {
-        // Kullanıcının doğrulanıp doğrulanmadığını kontrol et
-        if (!user.is_verified) {
-          // Kullanıcı doğrulanmamış, doğrulama e-postasını yeniden gönder
-          const token = generateVerificationToken(user.user_id);
-          sendVerificationEmail(user.email, token);
+      if (storedHashedPassword) {
+        const isMatch = await bcrypt.compare(loginPassword, storedHashedPassword);
+        if (isMatch) {
+          // Kullanıcının doğrulanıp doğrulanmadığını kontrol et
+          if (!user.is_verified) {
+            // Kullanıcı doğrulanmamış, doğrulama e-postasını yeniden gönder
+            const token = generateVerificationToken(user.user_id);
+            sendVerificationEmail(user.email, token);
 
-          return res.status(403).json({
-            success: false,
-            message: "Your email is not verified. A new verification email has been sent."
-          });
-        }
-
-        // Kullanıcı doğrulanmışsa oturum aç
-        (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name};
-        req.session.save((err) => {
-          if (err) {
-            console.error("Session save error:", err);
-            return res.status(500).json({ success: false, message: "Session save error" });
+            return res.status(403).json({
+              success: false,
+              message: "Your email is not verified. A new verification email has been sent."
+            });
           }
-          console.log("Session save success");
-          res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id, name: user.name } });
-        });
 
+          // Kullanıcı doğrulanmışsa oturum aç
+          (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name};
+          req.session.save((err) => {
+            if (err) {
+              console.error("Session save error:", err);
+              return res.status(500).json({ success: false, message: "Session save error" });
+            }
+            console.log("Session save success");
+            res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id, name: user.name } });
+          });
+        } else {
+          res.status(500).json({ success: false, message: "Incorrect password" });
+        }
       } else {
         res.status(401).json({ success: false, message: "Incorrect password" });
       }
@@ -189,14 +153,15 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  console.log("Session in isAuthenticated:", (req.session as CustomSession).user)
-  if ((req.session as CustomSession) && (req.session as CustomSession).user && (req.session as CustomSession).user.user_id) {
-      next();
-  } else {
-      console.log("Session in isAuthenticated:", "You must be logged in to view this page")
-      res.status(401).json({ success: false, message: "You must be logged in to view this page" });
+  if (req.isAuthenticated() || req.session && (req.session as CustomSession).user) {  // Passport.js'in oturum doğrulama fonksiyonu
+    console.log("Session in isAuthenticated:", req.session);
+    return next();  // Eğer kullanıcı oturum açtıysa, sonraki middleware'e devam et
   }
+
+  console.log("You must be logged in to view this page");
+  res.status(401).json({ success: false, message: "You must be logged in to view this page" });
 };
+
 
 export const checkAuth = (req: Request, res: Response) => {
   const user = (req.session as CustomSession)?.user;
@@ -210,6 +175,47 @@ export const checkAuth = (req: Request, res: Response) => {
   }
 };
 
-app.listen(port, () => {
-    console.log(`Auth server running on port ${port}`);
-});
+
+// Google OAuth yönlendirmesi
+export const googleLogin = passport.authenticate('google', { scope: ['profile', 'email'] });
+
+// Google OAuth geri dönüş işlemi
+/*
+-------------------------------
+Giriş bilgilerini frontend'e göndermediğimiz içi frontend'in korumalı route'unda sıkıntı çıkıyor
+ek olarak passport içindeki gömülü isAuthenticated fonksiyonu google dışı girişlerde çalışacak mı dene
+*/
+export const googleCallback = (req: Request, res: Response) => {
+  console.log(req, "in")
+  if (!req.user) {
+    return res.status(401).json({ success: false, message: "Authentication failed" });
+  }
+
+  // `req.user` tipini doğru belirlemek için:
+  const user = req.user as { user_id: number; email: string; name: string };
+
+  (req.session as CustomSession).user = {
+    user_id: user.user_id,
+    email: user.email,
+    name: user.name,
+  };
+
+  req.session.save((err) => {
+    if (err) {
+      return res.status(500).json({ success: false, message: "Session save error" });
+    }
+
+    res.redirect('http://localhost:3000/home');
+  });
+};
+
+// Çıkış işlemi
+export const logout = (req: Request, res: Response, next: NextFunction) => {
+  req.logout((err) => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).send('Logout failed');
+    }
+    res.status(200).json({ success: true, message: "Logout successful" });
+  });
+};

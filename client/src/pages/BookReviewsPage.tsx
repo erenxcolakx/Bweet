@@ -31,7 +31,7 @@ const BookReviews: React.FC = () => {
   useEffect(() => {
     const fetchBookReviews = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_AUTH_ADDRESS}/api/books/${bookId}`, {
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/books/${bookId}`, {
             withCredentials: true,
         }); // Kitap ve yorumları backend'den çek
         setBook(response.data.book); // Kitap detaylarını state'e set et

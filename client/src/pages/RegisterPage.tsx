@@ -10,11 +10,17 @@ const RegisterPage: React.FC = () => {
   return (
     <div className="RegisterPage">
       <BweetNavBar/>
-      <div className="container mt-5">
-        <h1 className="josefin-sans-1">Register</h1>
-        <div className="row justify-content-between">
-          <RegisterForm error={errorMessage} />
-          <GoogleLoginButton />
+      <div className="container d-flex flex-column justify-content-center align-items-center" style={{height: '600px'}}> {/* Tam ekran merkezleme */}
+        <div className="w-100" style={{ maxWidth: '500px' }}> {/* Form genişliğini artırarak sınırlandır */}
+          <h1 className="text-center josefin-sans-1 mb-3" style={{ fontSize: '3rem' }}>Register</h1>
+          <div className="d-flex flex-column align-items-center gap-4"> {/* Elemanlar arasındaki boşluğu artır */}
+            <div className='justify-content-center d-flex' style={{ width: '100%' }}>
+              <RegisterForm error={errorMessage} />
+            </div>
+            <div style={{ width: '100%' }}>
+              <GoogleLoginButton />
+            </div>
+          </div>
         </div>
       </div>
     </div>

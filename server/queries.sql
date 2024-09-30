@@ -3,7 +3,8 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
     name VARCHAR(70)
-    password TEXT NOT NULL,
+    password TEXT,
+    google_id VARCHAR(255),
     is_verified BOOLEAN DEFAULT FALSE
 );
 

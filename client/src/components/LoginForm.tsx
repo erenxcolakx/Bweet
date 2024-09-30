@@ -16,7 +16,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ error }) => {
     e.preventDefault();
 
     try {
-      const response = await axios.post(`${process.env.REACT_APP_AUTH_ADDRESS}/api/login`, {
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/login`, {
         username: email,
         password: password
       }, {
@@ -36,47 +36,45 @@ const LoginForm: React.FC<LoginFormProps> = ({ error }) => {
   };
 
   return (
-    <>
-      <div className="col-sm-8">
-        <div className="card">
-          <div className="card-body">
-            <form onSubmit={handleSubmit}>
-              <div className="form-group">
-                <label htmlFor="email" className="josefin-sans-1">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  className="form-control"
-                  name="username"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete='username'
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="password" className="josefin-sans-1">Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  className="form-control"
-                  name="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  autoComplete='current-password'
-                />
-              </div>
-              {error && <p className='mt-2'>{error}</p>}
-              <div className="d-flex flex-wrap justify-content-between mt-2 gap-2">
-                <button type="submit" className="btn btn-warning">Login</button>
-                <a href="/register" className="btn btn-outline-warning">Create Account</a>
-              </div>
-            </form>
-          </div>
+    <div className="col-12 col-md-8"> {/* Daha geniş bir alan sağlandı */}
+      <div className="card shadow-sm"> {/* Gölge efekti eklendi */}
+        <div className="card-body">
+          <form onSubmit={handleSubmit}>
+            <div className="form-group mb-3">
+              <label htmlFor="email" className="josefin-sans-1">Email</label>
+              <input
+                id="email"
+                type="email"
+                className="form-control"
+                name="username"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete='username'
+              />
+            </div>
+            <div className="form-group mb-3">
+              <label htmlFor="password" className="josefin-sans-1">Password</label>
+              <input
+                id="password"
+                type="password"
+                className="form-control"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete='current-password'
+              />
+            </div>
+            {error && <p className='text-danger mt-2'>{error}</p>} {/* Hata mesajını kırmızı renkte göster */}
+            <div className="d-flex flex-wrap justify-content-between mt-3 gap-2">
+              <button type="submit" className="btn btn-warning px-4">Login</button>
+              <a href="/register" className="btn btn-outline-warning px-4">Create Account</a>
+            </div>
+          </form>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

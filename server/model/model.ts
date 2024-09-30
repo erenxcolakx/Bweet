@@ -4,7 +4,8 @@ interface User {
   is_verified: boolean;
   user_id: number;
   email: string;
-  password: string;
+  password?: string;
+  google_id?: string;
   name: string
 }
 
@@ -239,4 +240,17 @@ export const getSortedReviews = async (sortType: string, userId: number): Promis
     default:
       throw new Error("Invalid sort type");
   }
+};
+
+export const getUserByGoogleId = async (googleId: string) => {
+  const query = 'SELECT * FROM users WHERE google_id = $1';
+  const result = await db.query(query, [googleId]);
+  return result.rows[0];
+};
+
+export const createUserWithGoogle = async (googleId: string, name: string, email: string) => {
+  const verified = true;
+  const query = `INSERT INTO users (google_id, name, email, is_verified) VALUES ($1, $2, $3, $4) RETURNING *`;
+  const result = await db.query(query, [googleId, name, email, verified]);
+  return result.rows[0];
 };
