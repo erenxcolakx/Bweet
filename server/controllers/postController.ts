@@ -146,3 +146,19 @@ export const getPublicPosts = async (req: Request, res: Response, next: NextFunc
     return res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
+
+export const getTrendingBooks = async (req: Request, res: Response) => {
+  try {
+    const trendingBooks = await postModel.getTrendingBooks();
+    res.status(200).json({
+      success: true,
+      books: trendingBooks,
+    });
+  } catch (error) {
+    console.error('Error in getTrendingBooks:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching trending books',
+    });
+  }
+};

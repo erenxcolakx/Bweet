@@ -26,6 +26,7 @@ router.route("/api/sort").post(auth.isAuthenticated, postController.sortReviews)
 router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deleteReview);
 router.route("/api/home").get(auth.isAuthenticated, postController.getPublicPosts);
 router.route("/api/user/:id").get(auth.isAuthenticated, profileController.getUserInfo);
+router.route("/api/trending-books").get(postController.getTrendingBooks);
 
 
 // Google OAuth yönlendirmesi

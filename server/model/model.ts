@@ -254,3 +254,28 @@ export const createUserWithGoogle = async (googleId: string, name: string, email
   const result = await db.query(query, [googleId, name, email, verified]);
   return result.rows[0];
 };
+
+export const getTrendingBooks = async () => {
+  const query = `
+    SELECT
+      b.title,
+      b.author,
+      b.cover_id,
+      AVG(b.rating) AS rating,
+      COUNT(b.title) AS review_count
+    FROM books b
+    WHERE b.is_public = true
+      AND b.time >= NOW() - INTERVAL '7 days'
+    GROUP BY b.title, b.author, b.cover_id
+    ORDER BY review_count DESC
+    LIMIT 10;
+  `;
+
+  try {
+    const result = await db.query(query);
+    return result.rows;  // Kitap ve yorum sayılarını döndürüyoruz
+  } catch (error) {
+    console.error('Error fetching trending books:', error);
+    throw new Error('Error fetching trending books');
+  }
+};
