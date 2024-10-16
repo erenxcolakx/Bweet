@@ -4,7 +4,8 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import SortDropdown from '../components/SortDropdown';
 import BookPost from '../components/BookPost';
-
+import ManualBookAddButton from '../components/ManualBookAddButton';
+import ManualBookModal from '../modals/ManualBookModal';
 const BooksPage: React.FC = () => {
   interface Post {
     id: number;
@@ -18,7 +19,17 @@ const BooksPage: React.FC = () => {
   }
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);  // Modalın açık olup olmadığını takip edin
 
+  // Butona tıklandığında modalı açar
+  const handleManualAddClick = () => {
+    setIsModalOpen(true);
+  };
+
+  // Modalı kapatır
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
@@ -74,16 +85,29 @@ const BooksPage: React.FC = () => {
     }
   };
 
+  const handleBookSubmit = (bookData: { coverId: string; title: string; authorName: string; rating: number; review: string; isPublic: boolean }) => {
+    console.log('Book Data:', bookData); // Kitap verilerini işlemek için
+    // Kitap ekleme işlemi burada yapılabilir (API'ye gönderme vb.)
+  };
+
   return (
     <div>
-      <Header/>
+      {isModalOpen ? "": <Header /> }
       <SearchBar />
-      <SortDropdown onSort={handleSort} />
+      <div className='row container mx-auto'>
+        <ManualBookAddButton onClick={handleManualAddClick} />
+        <SortDropdown onSort={handleSort} />
+      </div>
       <div className="row d-flex flex-column gap-2 justify-content-center align-content-center mx-lg-5 px-5 py-1">
         {posts.map(post => (
           <BookPost key={post.id} post={post} onDelete={handleDelete} onUpdate={handleUpdate} />
         ))}
       </div>
+      <ManualBookModal
+        show={isModalOpen}
+        onClose={handleModalClose}
+        onSubmit={handleBookSubmit}
+      />
     </div>
   );
 };
