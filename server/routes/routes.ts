@@ -2,9 +2,15 @@ import express from 'express';
 import * as postController from '../controllers/postController';
 import * as auth from '../controllers/auth';
 import * as profileController from '../controllers/profileController';
+import multer from 'multer';
 const router = express.Router();
 import passport from '../controllers/passport'; // Google OAuth için passport yapılandırması
-
+import convertImagesToBase64 from '../middlewares/convertImagesToBase64';
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage,
+  limits: { fileSize: 1 * 1024 * 1024 }  // 1 MB dosya boyutu sınırı
+});
 
 // Mevcut Auth ve Profile işlemleri
 router.route("/api/login").post(auth.handleLogin);
@@ -17,16 +23,16 @@ router.route('/api/check-auth').get(auth.checkAuth);
 router.route("/api/logout").get(auth.handleLogout);
 
 // Books işlemleri
-router.route("/api/books").get(auth.isAuthenticated, postController.getPosts);
-router.route("/api/books/search").get(auth.isAuthenticated, postController.searchBooks);
-router.route('/api/books/:bookId').get(auth.isAuthenticated, postController.getBookReviews);
-router.route("/api/submit").post(auth.isAuthenticated, postController.addReview);
-router.route("/api/edit").post(auth.isAuthenticated, postController.updateReview);
-router.route("/api/sort").post(auth.isAuthenticated, postController.sortReviews);
-router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deleteReview);
-router.route("/api/home").get(auth.isAuthenticated, postController.getPublicPosts);
-router.route("/api/user/:id").get(auth.isAuthenticated, profileController.getUserInfo);
-router.route("/api/trending-books").get(postController.getTrendingBooks);
+router.route("/api/books").get(auth.isAuthenticated, convertImagesToBase64, postController.getPosts);
+router.route("/api/books/search").get(auth.isAuthenticated, convertImagesToBase64, postController.searchBooks);
+router.route('/api/books/:bookId').get(auth.isAuthenticated, convertImagesToBase64, postController.getBookPosts);
+router.route("/api/submit").post(auth.isAuthenticated, upload.single('coverImage'), postController.addPost);
+router.route("/api/edit").post(auth.isAuthenticated, postController.updatePost);
+router.route("/api/sort").post(auth.isAuthenticated, convertImagesToBase64, postController.sortPosts);
+router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deletePost);
+router.route("/api/home").get(auth.isAuthenticated, convertImagesToBase64, postController.getPublicPosts);
+router.route("/api/user/:id").get(auth.isAuthenticated, convertImagesToBase64, profileController.getUserInfo);
+router.route("/api/trending-books").get( convertImagesToBase64, postController.getTrendingBooks);
 
 
 // Google OAuth yönlendirmesi
