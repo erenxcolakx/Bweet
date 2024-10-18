@@ -11,7 +11,8 @@ const BooksPage: React.FC = () => {
     id: number;
     title: string;
     author: string;
-    cover_id: string;
+    cover_id: string | null;
+    cover_image: Buffer | null;
     rating: number;
     review: string;
     time: string;
@@ -20,6 +21,7 @@ const BooksPage: React.FC = () => {
 
   const [posts, setPosts] = useState<Post[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);  // Modalın açık olup olmadığını takip edin
+  const [error, setError] = useState<string | null>(null); // Hata mesajını takip edin
 
   // Butona tıklandığında modalı açar
   const handleManualAddClick = () => {
@@ -35,6 +37,47 @@ const BooksPage: React.FC = () => {
     // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
     handleSort('rto');
   }, []);
+
+
+  const handleSubmit = async (bookData: { coverImage: File | null; title: string; author: string; rating: number; review: string; isPublic: boolean }) => {
+    // Zorunlu alanları kontrol ediyoruz (coverImage opsiyonel)
+    const { coverImage, title, author, rating, review, isPublic } = bookData;
+    if (!title || !author || !review) {
+      setError("Please fill out all required fields (Title, Author, Review).");
+      return;
+    }
+
+    const formData = new FormData();
+    if (coverImage) {
+      formData.append('coverImage', coverImage);  // Kapak resmi varsa ekliyoruz
+    }
+    formData.append('title', title);
+    formData.append('author', author);
+    formData.append('rating', String(rating));
+    formData.append('review', review);
+    formData.append('isPublic', String(isPublic));
+
+    try {
+      // API'ye POST isteği gönderiyoruz
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true, // Oturum bilgilerini iletir
+      });
+
+      if (response.data.success) {
+        console.log('Book added successfully');
+        setIsModalOpen(false); // Modalı kapat
+      } else {
+        console.error('Error adding book:', response.data.message);
+        setError(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error submitting the form:', error);
+      setError('Error submitting the form.');
+    }
+  };
 
   const handleSort = async (sortType: string) => {
     try {
@@ -85,11 +128,6 @@ const BooksPage: React.FC = () => {
     }
   };
 
-  const handleBookSubmit = (bookData: { coverId: string; title: string; authorName: string; rating: number; review: string; isPublic: boolean }) => {
-    console.log('Book Data:', bookData); // Kitap verilerini işlemek için
-    // Kitap ekleme işlemi burada yapılabilir (API'ye gönderme vb.)
-  };
-
   return (
     <div>
       {isModalOpen ? "": <Header /> }
@@ -106,7 +144,7 @@ const BooksPage: React.FC = () => {
       <ManualBookModal
         show={isModalOpen}
         onClose={handleModalClose}
-        onSubmit={handleBookSubmit}
+        onSubmit={handleSubmit}
       />
     </div>
   );

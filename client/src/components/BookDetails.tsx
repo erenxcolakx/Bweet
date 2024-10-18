@@ -20,7 +20,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ title, author, coverId, onSub
     <div className="container d-flex flex-column flex-lg-row align-items-center">
       <div className="col col-4 d-flex justify-content-center">
         <img
-          src={`https://covers.openlibrary.org/b/id/${coverId}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
+          src={coverId ? `https://covers.openlibrary.org/b/id/${coverId}.jpg` : '/images/defbookcover.jpg'}
           alt="Book Cover"
           style={{ width: '300px', maxWidth: '100%', height: 'auto' }}
         />

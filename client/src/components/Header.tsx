@@ -40,7 +40,7 @@ const Header: React.FC = () => {
       <div className="container-fluid d-flex flex-column gap-3 align-items-center" style={{ gridTemplateColumns: '1fr 2fr' }}>
         <nav className="navbar container d-flex flex-column flex-md-row justify-content-md-between justify-content-center">
           <div className="d-flex align-items-center justify-content-center">
-            <Link to="/books">
+            <Link to="/">
               <img src="/images/favicon.png" alt="book icon" className="mb-3 mt-3" width="32px" />
             </Link>
             <h1 className="text-blue mt-2 ms-2 lobster-regular">Bweet</h1>

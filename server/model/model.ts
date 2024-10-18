@@ -44,13 +44,14 @@ export const getPublicUserInfosById = async (user_id: number) => {
     const userInfo = {
       user_id: result.rows[0].user_id,
       name: result.rows[0].name,
-      reviews: result.rows.filter(row => row.book_id !== null).map(row => ({
-        review_id: row.id,
+      posts: result.rows.filter(row => row.book_id !== null).map(row => ({
+        post_id: row.id,
         title: row.title,
         author: row.author,
         review: row.review,
         rating: row.rating,
-        cover_id: row.cover_id,  // Kitap kapağı bilgisi
+        cover_id: row.cover_id,
+        cover_image: row.cover_image,  // Kitap kapağı bilgisi
         is_public: row.is_public, // Public durumu
         time: row.time // Yayın tarihi
       }))
@@ -110,18 +111,19 @@ export const verifyUser = async (userId: number) => {
   }
 };
 
-interface Review {
+interface Post {
   id: number;
   title: string;
   author: string;
   cover_id: number | null;
-  review: string;
+  cover_image: Buffer | null;
+  post: string;
   rating: number;
   time: Date;
   user_id: number;
 }
 
-export const getAllPosts = async (userId: number): Promise<Review[]> => {
+export const getAllPosts = async (userId: number): Promise<Post[]> => {
   try {
     const result = await db.query('SELECT * FROM books WHERE user_id = $1', [userId]);
     return result.rows;
@@ -139,27 +141,45 @@ export const getPublicPosts = async () => {
   }
 };
 
-export const addReview = async (
-  title: string,
-  author: string,
-  coverId: string | null,
-  review: string,
-  rating: number,
-  time: Date,
-  userId: number,
-  isPublic: boolean
-): Promise<void> => {
-  const validCoverId = coverId === null ? null : (isNaN(parseInt(coverId)) ? null : parseInt(coverId));
+export const addPostWithCoverId = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean, coverId: string) => {
+  const query = `
+    INSERT INTO books (title, author, review, rating, time, user_id, is_public, cover_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;
+  `;
+  const values = [title, author, review, rating, time, userId, isPublic, coverId];
+  const result = await db.query(query, values);
+  return result.rows[0];
+};
+
+export const addPostWithCoverImage = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean, coverImageBuffer: Buffer) => {
+  const query = `
+    INSERT INTO books (title, author, review, rating, time, user_id, is_public, cover_image)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+    RETURNING *;
+  `;
+  const values = [title, author, review, rating, time, userId, isPublic, coverImageBuffer];
+  const result = await db.query(query, values);
+  return result.rows[0];
+};
+
+export const addPostWithoutCover = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean) => {
+  const query = `
+    INSERT INTO books (title, author, review, rating, time, user_id, is_public)
+    VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING *;
+  `;
+  const values = [title, author, review, rating, time, userId, isPublic];
+
   try {
-    await db.query('INSERT INTO books (title, author, cover_id, review, rating, time, user_id, is_public) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', 
-      [title, author, validCoverId, review, rating, time, userId, isPublic]);
+    const result = await db.query(query, values);
+    return result.rows[0];
   } catch (error) {
-    throw error;
+    throw new Error(`Error adding book without cover: ${error}`);
   }
 };
 
-
-export const updateReview = async (
+export const updatePost = async (
   postId: number,
   editedReview: string,
   editedRating: number,
@@ -191,7 +211,7 @@ export const searchBooks = async (searchTerm: string): Promise<any[]> => {
 };
 
 
-export const getReviewByBookId = async (bookId: number) => {
+export const getPostByBookId = async (bookId: number) => {
   try {
     const result = await db.query('SELECT * FROM books WHERE id = $1', [bookId]);
     return result.rows[0]; // Kitap detayını döndür
@@ -200,7 +220,7 @@ export const getReviewByBookId = async (bookId: number) => {
   }
 };
 
-export const getBookReviewsByBookId = async (bookId: number) => {
+export const getBookPostsByBookId = async (bookId: number) => {
   try {
     const result = await db.query(
       `SELECT books.id, books.user_id, books.review, books.rating, books.time, users.name
@@ -218,7 +238,7 @@ export const getBookReviewsByBookId = async (bookId: number) => {
 
 
 // Delete post function
-export const deleteReview = async (postId: number, userId: number): Promise<void> => {
+export const deletePost = async (postId: number, userId: number): Promise<void> => {
   try {
     await db.query('DELETE FROM books WHERE id = $1 AND user_id = $2', [postId, userId]);
   } catch (error) {
@@ -227,7 +247,7 @@ export const deleteReview = async (postId: number, userId: number): Promise<void
 };
 
 
-export const getSortedReviews = async (sortType: string, userId: number): Promise<Review[]> => {
+export const getSortedPosts = async (sortType: string, userId: number): Promise<Post[]> => {
   switch (sortType) {
     case "htl":
       return await db.query('SELECT * FROM books WHERE user_id = $1 ORDER BY rating DESC', [userId]).then(result => result.rows);
@@ -261,12 +281,13 @@ export const getTrendingBooks = async () => {
       b.title,
       b.author,
       b.cover_id,
+      b.cover_image,
       AVG(b.rating) AS rating,
       COUNT(b.title) AS review_count
     FROM books b
     WHERE b.is_public = true
       AND b.time >= NOW() - INTERVAL '7 days'
-    GROUP BY b.title, b.author, b.cover_id
+    GROUP BY b.title, b.author, b.cover_id, b.cover_image
     ORDER BY review_count DESC
     LIMIT 10;
   `;

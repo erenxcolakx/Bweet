@@ -5,7 +5,8 @@ interface BookPostProps {
     id: number;
     title: string;
     author: string;
-    cover_id: string;
+    cover_id: string | null;
+    cover_image: Buffer | null;
     rating: number;
     review: string;
     time: string;
@@ -43,12 +44,19 @@ const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
     <div className="col-12" style={{ maxWidth: '1200px', margin: 'auto' }}>
       <div className="row d-flex rounded-2 flex-md-row flex-column justify-content-md-start justify-content-center" style={{ border: '1px solid rgb(5, 0, 0)', padding: 0 }}>
         <div className="col-md-3 col-12 d-flex justify-content-center rounded-2" style={{ padding: 0 }}>
-          <img
-            className="rounded-2 img-fluid col-md-12"
-            style={{ margin: 0 , maxHeight: '500px'}}
-            src={`https://covers.openlibrary.org/b/id/${post.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
-            alt={post.title}
-          />
+        <img
+          className="rounded-2 img-fluid col-md-12"
+          style={{ margin: 0, maxHeight: '500px' }}
+          src={
+            post.cover_id
+              ? `https://covers.openlibrary.org/b/id/${post.cover_id}.jpg`
+              : post.cover_image
+              ? `data:image/jpeg;base64,${post.cover_image}`
+              : '/images/defbookcover.jpg'
+          }
+          alt={post.title}
+        />
+
         </div>
         <div className="col-md-9 col-12 mt-1 mb-1 d-flex">
           <div className="d-flex flex-column mb-4 mt-1 w-100">

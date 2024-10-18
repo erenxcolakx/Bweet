@@ -8,7 +8,8 @@ interface Post {
   review: string;
   rating: number;
   time: string;
-  cover_id: string;
+  cover_id: string | null;
+  cover_image: Buffer | null;
   is_public: boolean;
   name: string;
   user_id: number;
@@ -51,7 +52,13 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
                 transition: 'all 0.3s ease-in-out',
               }}
               onClick={handleImageClick}
-              src={`https://covers.openlibrary.org/b/id/${post.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
+              src={
+                post.cover_id
+                  ? `https://covers.openlibrary.org/b/id/${post.cover_id}.jpg`
+                  : post.cover_image
+                  ? `data:image/jpeg;base64,${post.cover_image}`
+                  : '/images/defbookcover.jpg'
+              }
               alt={post.title}
             />
           </div>

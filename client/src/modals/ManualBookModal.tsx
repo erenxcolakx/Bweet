@@ -3,27 +3,26 @@ import React, { useState } from 'react';
 interface ManualBookModalProps {
   show: boolean;
   onClose: () => void;
-  onSubmit: (bookData: { coverId: string; title: string; authorName: string; rating: number; review: string; isPublic: boolean }) => void;
+  onSubmit: (bookData: { coverImage: File | null; title: string; author: string; rating: number; review: string; isPublic: boolean }) => void;
 }
 
-const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubmit }) => {
-  const [coverId, setCoverId] = useState(''); // Kullanıcının girdiği kapak ID'si
-  const [title, setTitle] = useState(''); // Kullanıcının girdiği kitap başlığı
-  const [authorName, setAuthorName] = useState(''); // Kullanıcının girdiği yazar ismi
-  const [rating, setRating] = useState(3); // Varsayılan olarak ortalama bir değer
-  const [review, setReview] = useState(''); // Kullanıcının girdiği inceleme
-  const [isPublic, setIsPublic] = useState(false); // Yayınlama durumu
+const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubmit  }) => {
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [rating, setRating] = useState(3);
+  const [review, setReview] = useState('');
+  const [isPublic, setIsPublic] = useState(false);
 
-  if (!show) return null; // Modal görünmüyorsa hiçbir şey render etmiyoruz
+  if (!show) return null;
 
   const handleSubmit = () => {
-    const bookData = { coverId, title, authorName, rating, review, isPublic };
-    onSubmit(bookData); // Parent bileşene form verilerini gönderiyoruz
-    onClose(); // Modalı kapat
+    onSubmit({ coverImage, title, author: author, rating, review, isPublic });  // Parent bileşene form verilerini gönderiyoruz
+    onClose();
   };
 
   const handleToggle = () => {
-    setIsPublic(!isPublic); // isPublic değerini tersine çeviriyoruz
+    setIsPublic(!isPublic);
   };
 
   return (
@@ -32,19 +31,20 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
         <button className="modal-close-button" onClick={onClose}>
           &times;
         </button>
-        <div className='mt-3'>
-          {/* Cover ID Input */}
+        <div className="mt-3">
           <div className="form-group mt-3 mx-3">
-            <label>Cover ID:</label>
+            <label>Cover Image:</label>
             <input
-              type="text"
+              type="file"
               className="form-control"
-              value={coverId}
-              onChange={(e) => setCoverId(e.target.value)}
-              placeholder="Enter Cover ID"
+              accept="image/png, image/jpeg, image/webp"
+              onChange={(e) => {
+                if (e.target.files && e.target.files.length > 0) {
+                  setCoverImage(e.target.files[0]);
+                }
+              }}
             />
           </div>
-          {/* Title Input */}
           <div className="form-group mt-3 mx-3">
             <label>Book Title:</label>
             <input
@@ -53,20 +53,20 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter Book Title"
+              required
             />
           </div>
-          {/* Author Name Input */}
           <div className="form-group mt-3 mx-3">
             <label>Author Name:</label>
             <input
               type="text"
               className="form-control"
-              value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
               placeholder="Enter Author Name"
+              required
             />
           </div>
-          {/* Rating Input */}
           <div className="form-group mt-3 mx-3">
             <label>Rating:</label>
             <input
@@ -77,10 +77,10 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               min="1"
               max="5"
               step="0.1"
+              required
             />
             <span>{rating}</span>
           </div>
-          {/* Review Input */}
           <div className="form-group mt-3 mx-3">
             <label>Review:</label>
             <textarea
@@ -89,9 +89,9 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               value={review}
               onChange={(e) => setReview(e.target.value)}
               placeholder="Write a review"
+              required
             />
           </div>
-          {/* Public Switch */}
           <div className="d-flex form-check form-group form-switch mt-3 mx-3 align-items-center">
             <input
               className="form-check-input"
@@ -101,12 +101,11 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               onChange={handleToggle}
               checked={isPublic}
             />
-            <label className="toggle-text ms-3" htmlFor='flexSwitchCheckDefault'>
-              {"Publish Post"}
+            <label className="toggle-text ms-3 barlow-condensed-semibold" htmlFor="flexSwitchCheckDefault">
+              {isPublic ? 'Public Post' : 'Private Post'}
             </label>
           </div>
         </div>
-        {/* Submit Button */}
         <button className="btn btn-primary mt-3" onClick={handleSubmit}>
           Submit
         </button>

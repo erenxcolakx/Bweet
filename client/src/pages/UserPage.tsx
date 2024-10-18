@@ -6,13 +6,14 @@ import Header from '../components/Header';
 import '../styles/PostStyles.css'
 
 
-interface Review {
-  review_id: number;
+interface Post {
+  post_id: number;
   title: string;
   author: string;
-  review: string;
+  post: string;
   rating: number;
-  cover_id: string;
+  cover_id: string | null;
+  cover_image: Buffer | null;
   is_public: boolean;
   time: string;
 }
@@ -23,7 +24,7 @@ interface UserProfile {
   bio?: string;
   profileImage?: string;
   email?: string;
-  reviews: Review[]; // Kullanıcının public kitapları
+  posts: Post[]; // Kullanıcının public kitapları
 }
 
 const UserPage: React.FC = () => {
@@ -52,7 +53,7 @@ const UserPage: React.FC = () => {
         setTargetUser(response.data.user); // Backend'den gelen "user" verisi kullanılıyor
         setLoading(false);
       } catch (error) {
-        setError('Kullanıcı profili alınamadı.');
+        setError('User not found');
         setLoading(false);
       }
     };
@@ -86,10 +87,10 @@ const UserPage: React.FC = () => {
         {/* Kullanıcının Public Kitapları */}
         <div className="user-books mt-5">
           <h2>Published reviews by {targetUser.name}</h2>
-          {targetUser.reviews.length > 0 ? (
+          {targetUser.posts.length > 0 ? (
             <div className="row justify-content-evenly">
-              {targetUser.reviews.map((review) => (
-                <div className="post col-md-4 mb-4 " key={review.review_id}>
+              {targetUser.posts.map((post) => (
+                <div className="post col-md-4 mb-4 " key={post.post_id}>
                   <div className="card h-100" style={{ border: '1px solid #dee2e6' }}>
                     <div className="d-flex justify-content-center align-items-center p-2">
                       <img
@@ -99,34 +100,40 @@ const UserPage: React.FC = () => {
                           maxHeight: '180px',
                           transition: 'all 0.3s ease-in-out',
                         }}
-                        src={`https://covers.openlibrary.org/b/id/${review.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
-                        alt={review.title}
+                        src={
+                          post.cover_id
+                            ? `https://covers.openlibrary.org/b/id/${post.cover_id}.jpg`
+                            : post.cover_image
+                            ? `data:image/jpeg;base64,${post.cover_image}`
+                            : '/images/defbookcover.jpg'
+                         }
+                         alt={post.title}
                       />
                     </div>
                     <div className="card-body d-flex flex-column justify-content-around">
                       <div className="d-flex justify-content-center align-items-center">
                         <div className="d-flex flex-column">
                           <div className="d-flex flex-column justify-content-center">
-                              <h6 className="card-title mb-1 oswald-mid book-text" onClick={()=>handleBookClick(review.review_id)} style={{fontSize:"25px"}}>{review.title}</h6>
-                              <span className="text-black text-center fw-light fst-italic">{review.author}</span>
+                              <h6 className="card-title mb-1 oswald-mid book-text" onClick={()=>handleBookClick(post.post_id)} style={{fontSize:"25px"}}>{post.title}</h6>
+                              <span className="text-black text-center fw-light fst-italic">{post.author}</span>
                           </div>
                         </div>
                       </div>
                       <p
                         className="card-text mt-2 text-center overflow-auto"
                         style={{ maxHeight: '100px', maxWidth: '100%', margin: '0 auto', wordBreak: 'break-word' }}>
-                        {review.review}
+                        {post.post}
                       </p>
 
                       <div className="d-flex align-items-center justify-content-center">
                         <div className="text-warning" style={{ fontSize: '16px' }}>
-                          {Array.from({ length: review.rating }, (_, i) => (
+                          {Array.from({ length: post.rating }, (_, i) => (
                             <span key={i}>⭐</span>
                           ))}
                         </div>
-                        <span className="ms-2 text-muted">{review.rating}/5</span>
+                        <span className="ms-2 text-muted">{post.rating}/5</span>
                       </div>
-                      <small className="d-flex text-muted mt-3 justify-content-center">{new Date(review.time).toLocaleDateString()}</small>
+                      <small className="d-flex text-muted mt-3 justify-content-center">{new Date(post.time).toLocaleDateString()}</small>
                     </div>
                   </div>
                 </div>
