@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ManualBookModalProps {
   show: boolean;
@@ -6,19 +6,55 @@ interface ManualBookModalProps {
   onSubmit: (bookData: { coverImage: File | null; title: string; author: string; rating: number; review: string; isPublic: boolean }) => void;
 }
 
-const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubmit  }) => {
+const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubmit }) => {
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
   const [rating, setRating] = useState(3);
   const [review, setReview] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [errors, setErrors] = useState({ title: '', author: '', review: '' }); // Error state
+
+  // Modal kapandığında form alanlarını sıfırlamak için useEffect kullanıyoruz
+  useEffect(() => {
+    if (!show) {
+      setCoverImage(null);
+      setTitle('');
+      setAuthor('');
+      setRating(3);
+      setReview('');
+      setIsPublic(false);
+      setErrors({ title: '', author: '', review: '' });
+    }
+  }, [show]);
 
   if (!show) return null;
 
   const handleSubmit = () => {
-    onSubmit({ coverImage, title, author: author, rating, review, isPublic });  // Parent bileşene form verilerini gönderiyoruz
-    onClose();
+    let hasError = false;
+    const newErrors = { title: '', author: '', review: '' };
+
+    // Check if required fields are filled
+    if (!title) {
+      newErrors.title = 'Book title is required';
+      hasError = true;
+    }
+    if (!author) {
+      newErrors.author = 'Author name is required';
+      hasError = true;
+    }
+    if (!review) {
+      newErrors.review = 'Review is required';
+      hasError = true;
+    }
+
+    // Update error state
+    setErrors(newErrors);
+
+    if (!hasError) {
+      onSubmit({ coverImage, title, author, rating, review, isPublic });
+      onClose();
+    }
   };
 
   const handleToggle = () => {
@@ -53,8 +89,8 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Enter Book Title"
-              required
             />
+            {errors.title && <p className="text-danger">{errors.title}</p>}
           </div>
           <div className="form-group mt-3 mx-3">
             <label>Author Name:</label>
@@ -64,8 +100,8 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               value={author}
               onChange={(e) => setAuthor(e.target.value)}
               placeholder="Enter Author Name"
-              required
             />
+            {errors.author && <p className="text-danger">{errors.author}</p>}
           </div>
           <div className="form-group mt-3 mx-3">
             <label>Rating:</label>
@@ -77,7 +113,6 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               min="1"
               max="5"
               step="0.1"
-              required
             />
             <span>{rating}</span>
           </div>
@@ -89,8 +124,8 @@ const ManualBookModal: React.FC<ManualBookModalProps> = ({ show, onClose, onSubm
               value={review}
               onChange={(e) => setReview(e.target.value)}
               placeholder="Write a review"
-              required
             />
+            {errors.review && <p className="text-danger">{errors.review}</p>}
           </div>
           <div className="d-flex form-check form-group form-switch mt-3 mx-3 align-items-center">
             <input

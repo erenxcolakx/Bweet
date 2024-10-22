@@ -10,7 +10,7 @@ interface Post {
   post_id: number;
   title: string;
   author: string;
-  post: string;
+  review: string;
   rating: number;
   cover_id: string | null;
   cover_image: Buffer | null;
@@ -122,7 +122,7 @@ const UserPage: React.FC = () => {
                       <p
                         className="card-text mt-2 text-center overflow-auto"
                         style={{ maxHeight: '100px', maxWidth: '100%', margin: '0 auto', wordBreak: 'break-word' }}>
-                        {post.post}
+                        {post.review}
                       </p>
 
                       <div className="d-flex align-items-center justify-content-center">
