@@ -41,9 +41,9 @@ const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
   const roundedRating = Math.round(editedRating);
 
   return (
-    <div className="col-12" style={{ maxWidth: '1200px', margin: 'auto' }}>
-      <div className="row d-flex rounded-2 flex-md-row flex-column justify-content-md-start justify-content-center" style={{ border: '1px solid rgb(5, 0, 0)', padding: 0 }}>
-        <div className="col-md-3 col-12 d-flex justify-content-center rounded-2" style={{ padding: 0 }}>
+    <div className="post container" style={{ maxWidth: '1200px', margin: 'auto' }}>
+      <div className="card row d-flex rounded-2 flex-md-row flex-column justify-content-md-start justify-content-center">
+        <div className="col-md-3 col-12 d-flex justify-content-center rounded-2 p-2" style={{ padding: 0 }}>
         <img
           className="rounded-2 img-fluid col-md-12"
           style={{ margin: 0, maxHeight: '500px' }}

@@ -60,7 +60,7 @@ const BookPosts: React.FC = () => {
             <div className='mt-3 d-flex flex-md-row flex-column justify-content-md-start justify-content-center '>
              <div className='d-flex justify-content-md-start justify-content-center'>
                <img
-                 className="modal-book-img"
+                 className="modal-book-img h-100 rounded-2"
                  src={
                   book.cover_id
                     ? `https://covers.openlibrary.org/b/id/${book.cover_id}.jpg`

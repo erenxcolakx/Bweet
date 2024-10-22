@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import TrendingBooks from './TrendingBooks';
@@ -37,19 +36,19 @@ const HomePageComponent: React.FC = () => {
     <div>
       {/* Featured Section */}
       <div className="features container mt-5">
-        <div className="row">
-          <div className="col-md-4 text-center">
-            <img src="/images/track-books.png" alt="Track Books" className="mb-3" width="64px" />
+        <div className="row d-flex justify-content-around">
+          <div className="col-md-3 text-center">
+            <img src="../images/trackbooks.webp" alt="Track Books" className="mb-3 rounded-3 w-100" width="264px" />
             <h4>Track Books</h4>
             <p>Create your personal book list.</p>
           </div>
-          <div className="col-md-4 text-center">
-            <img src="/images/recommendations.png" alt="Book Recommendations" className="mb-3" width="64px" />
+          <div className="col-md-3 text-center">
+            <img src="../images/bookrecommendation.webp" alt="Book Recommendations" className="mb-3 rounded-3 w-100" width="264px" />
             <h4>Book Recommendations</h4>
             <p>Get reading suggestions.</p>
           </div>
-          <div className="col-md-4 text-center">
-            <img src="/images/share-books.png" alt="Share Books" className="mb-3" width="64px" />
+          <div className="col-md-3 text-center">
+            <img src="../images/sharebooks.webp" alt="Share Books" className="mb-3 rounded-3 w-100" width="264px" />
             <h4>Share with the Community</h4>
             <p>Share your book reviews with friends.</p>
           </div>
