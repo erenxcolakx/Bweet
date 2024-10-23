@@ -101,11 +101,6 @@ const HomePageComponent: React.FC = () => {
 
       {/* Trending Books Section */}
       <TrendingBooks/>
-
-      {/* Footer */}
-      <footer className="footer mt-5 bg-dark text-white text-center py-4">
-        <p>&copy; Bweet. All rights reserved.</p>
-      </footer>
     </div>
   );
 }
