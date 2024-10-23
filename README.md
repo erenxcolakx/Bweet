@@ -1,4 +1,4 @@
-# 📚 Bweet
+# <img src="https://github.com/erenxcolakx/Bweet/blob/main/client/public/images/favicon.png" width="28px"/> Bweet
 
 Bweet is a book review app designed for book enthusiasts to easily add, edit and review their favorite reads, as well as read other people's reviews.
 
