@@ -58,7 +58,7 @@ export const getUserInfo = async (req: Request, res: Response, next: NextFunctio
       user: {
         user_id: user.user_id,
         name: user.name,
-        reviews: user.reviews // Kullanıcının public kitaplarını da ekliyoruz
+        posts: user.posts // Kullanıcının public kitaplarını da ekliyoruz
       },
     });
   } catch (error) {

@@ -4,13 +4,15 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import SortDropdown from '../components/SortDropdown';
 import BookPost from '../components/BookPost';
-
+import ManualBookAddButton from '../components/ManualBookAddButton';
+import ManualBookModal from '../modals/ManualBookModal';
 const BooksPage: React.FC = () => {
   interface Post {
     id: number;
     title: string;
     author: string;
-    cover_id: string;
+    cover_id: string | null;
+    cover_image: Buffer | null;
     rating: number;
     review: string;
     time: string;
@@ -18,12 +20,64 @@ const BooksPage: React.FC = () => {
   }
 
   const [posts, setPosts] = useState<Post[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);  // Modalın açık olup olmadığını takip edin
+  const [error, setError] = useState<string | null>(null); // Hata mesajını takip edin
 
+  // Butona tıklandığında modalı açar
+  const handleManualAddClick = () => {
+    setIsModalOpen(true);
+  };
+
+  // Modalı kapatır
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+  };
 
   useEffect(() => {
     // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
     handleSort('rto');
   }, []);
+
+
+  const handleSubmit = async (bookData: { coverImage: File | null; title: string; author: string; rating: number; review: string; isPublic: boolean }) => {
+    // Zorunlu alanları kontrol ediyoruz (coverImage opsiyonel)
+    const { coverImage, title, author, rating, review, isPublic } = bookData;
+    if (!title || !author || !review) {
+      setError("Please fill out all required fields (Title, Author, Review).");
+      return;
+    }
+
+    const formData = new FormData();
+    if (coverImage) {
+      formData.append('coverImage', coverImage);  // Kapak resmi varsa ekliyoruz
+    }
+    formData.append('title', title);
+    formData.append('author', author);
+    formData.append('rating', String(rating));
+    formData.append('review', review);
+    formData.append('isPublic', String(isPublic));
+
+    try {
+      // API'ye POST isteği gönderiyoruz
+      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        withCredentials: true, // Oturum bilgilerini iletir
+      });
+
+      if (response.data.success) {
+        console.log('Book added successfully');
+        setIsModalOpen(false); // Modalı kapat
+      } else {
+        console.error('Error adding book:', response.data.message);
+        setError(response.data.message);
+      }
+    } catch (error) {
+      console.error('Error submitting the form:', error);
+      setError('Error submitting the form.');
+    }
+  };
 
   const handleSort = async (sortType: string) => {
     try {
@@ -76,14 +130,22 @@ const BooksPage: React.FC = () => {
 
   return (
     <div>
-      <Header/>
+      {isModalOpen ? "": <Header /> }
       <SearchBar />
-      <SortDropdown onSort={handleSort} />
+      <div className='row container mx-auto'>
+        <ManualBookAddButton onClick={handleManualAddClick} />
+        <SortDropdown onSort={handleSort} />
+      </div>
       <div className="row d-flex flex-column gap-2 justify-content-center align-content-center mx-lg-5 px-5 py-1">
         {posts.map(post => (
           <BookPost key={post.id} post={post} onDelete={handleDelete} onUpdate={handleUpdate} />
         ))}
       </div>
+      <ManualBookModal
+        show={isModalOpen}
+        onClose={handleModalClose}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 };

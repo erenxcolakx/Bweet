@@ -1,4 +1,3 @@
-import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/PostStyles.css'
 interface Post {
@@ -8,7 +7,8 @@ interface Post {
   review: string;
   rating: number;
   time: string;
-  cover_id: string;
+  cover_id: string | null;
+  cover_image: Buffer | null;
   is_public: boolean;
   name: string;
   user_id: number;
@@ -21,13 +21,9 @@ interface PublicPostProps {
 
 
 const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
-  const [isImageExpanded, setIsImageExpanded] = useState(false); // Fotoğrafın büyüme durumu
   const roundedRating = Math.round(post.rating);
   const navigate = useNavigate();
 
-  const handleImageClick = () => {
-    setIsImageExpanded(!isImageExpanded); // Fotoğraf tıklandığında büyütme/daraltma
-  };
 
   const handleUserProfileClick = () => {
     navigate(`/user/${post.user_id}`); // Profil sayfasına yönlendirme
@@ -38,30 +34,29 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
   };
 
   return (
-    <div className='post'> {/* Just for class filtering */}
+    <div className='post container'> {/* Just for class filtering */}
       <div className="card mb-3" style={{ maxWidth: '1000px', margin: 'auto', border: '1px solid #dee2e6' }}>
         <div className="row g-0">
           <div className="col-md-3 d-flex justify-content-center align-items-center p-2">
             <img
-              className={`img-fluid rounded-3 ${isImageExpanded ? 'expanded' : ''}`}
-              style={{
-                maxWidth: isImageExpanded ? '300px' : '180px',
-                maxHeight: isImageExpanded ? '300px' : '180px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease-in-out',
-              }}
-              onClick={handleImageClick}
-              src={`https://covers.openlibrary.org/b/id/${post.cover_id}.jpg?default=https://openlibrary.org/static/images/icons/avatar_book-sm.png`}
+              className={`img-fluid rounded-3 `}
+              src={
+                post.cover_id
+                  ? `https://covers.openlibrary.org/b/id/${post.cover_id}.jpg`
+                  : post.cover_image
+                  ? `data:image/jpeg;base64,${post.cover_image}`
+                  : '/images/defbookcover.jpg'
+              }
               alt={post.title}
             />
           </div>
-          <div className="col-md-9">
+          <div className="col-md-8">
             <div className="card-body">
               <div className="d-flex justify-content-between align-items-center">
                 <div className="d-flex flex-column">
                   <div className="d-flex align-items-center mb-2">
                     <div
-                      className="user-profile-img rounded-circle d-flex justify-content-center align-items-center "
+                      className="user-profile-img rounded-circle d-flex justify-content-center align-items-center"
                       onClick={post.name ? handleUserProfileClick : undefined}
                       style={{
                         backgroundColor: !post.name || post.name === 'Anonym' ? '#ffffff' : '#000000',
@@ -94,7 +89,7 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
                     </div>
                   </div>
                 </div>
-                <div className="text-muted" style={{ fontSize: '14px' }}>
+                <div className="text-muted px-2" style={{ fontSize: '14px' }}>
                   {post.is_public ? 'Public' : 'Private'}
                 </div>
               </div>

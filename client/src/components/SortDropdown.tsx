@@ -6,7 +6,7 @@ interface SortDropdownProps {
 
 const SortDropdown: React.FC<SortDropdownProps> = ({ onSort }) => {
   return (
-    <div className="container dropdown row d-flex flex-column mx-auto w-75 my-3">
+    <div className="container dropdown col-sm row d-flex flex-column mx-auto w-50 my-3">
       <button className="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         Sort by
       </button>
