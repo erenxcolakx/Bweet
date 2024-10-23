@@ -1,6 +1,8 @@
-# 📚 BookNotes
+# 📚 Bweet
 
-BookNotes is a book review app designed for book enthusiasts to easily add, edit and review their favorite reads, as well as read other people's reviews.
+Bweet is a book review app designed for book enthusiasts to easily add, edit and review their favorite reads, as well as read other people's reviews.
+
+<img src="https://github.com/erenxcolakx/BookNotes/blob/main/public/images/Bweet.gif" width="600px"/>
 
 ## Features
 
@@ -9,6 +11,7 @@ BookNotes is a book review app designed for book enthusiasts to easily add, edit
 - **Edit and Delete:** Manage your reviews by editing or deleting them.
 - **Sort:** Organize posts by **rating** or **creation date**.
 - **User Authentication:** Log in and Register with Google and mail.
+- **Manual Book Adding System:** Add your books manually.
 
 ## Technologies Used
 
