@@ -3,29 +3,33 @@ import router from "./routes/routes";
 import session from 'express-session';
 import env from 'dotenv';
 import cors from 'cors';
-import passport from "./controllers/passport";  // Passport.js yapılandırması
+import passport from "./controllers/passport";  // Passport.js configuration
+import logger from './config/logger';  // Import the logger
 env.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-// Static dosyaları sunma
+// Static files
 app.use(express.static("public"));
 
-// Body parser için middleware
+// Body parser middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// CORS yapılandırması
+// CORS configuration
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5000'],  // Frontend uygulamanızın çalıştığı URL
-  methods: 'GET,POST,PUT,DELETE',    // İzin verilen HTTP metodları
-  credentials: true                  // Credential (cookie, authorization headers vb.) içeren istekleri kabul et
+  origin: ['http://localhost:3000', 'http://localhost:5000'],  // Frontend app URLs
+  methods: 'GET,POST,PUT,DELETE',  // Allowed HTTP methods
+  credentials: true                // Allow cookies and credentials
 }));
 
-// SECRET_KEY kontrolü
+// Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
+  logger.error("SECRET_KEY environment variable is not defined");
   throw new Error("SECRET_KEY environment variable is not defined");
+} else {
+  logger.info("SECRET_KEY is defined and ready");
 }
 
 // Session configuration
@@ -34,21 +38,24 @@ app.use(session({
   resave: false, // Only save session if modified
   saveUninitialized: false, // Do not save empty sessions
   cookie: {
-    secure: false, // Set true for HTTPS
+    secure: false, // Set to true if HTTPS is used
     httpOnly: true, // Prevent JavaScript access to cookies
     maxAge: 24 * 60 * 60 * 1000, // 24-hour session lifetime
     sameSite: 'lax' // Cross-site request protection
   }
 }));
+logger.info("Session middleware configured");
 
 // Passport.js initialization
 app.use(passport.initialize());
 app.use(passport.session());
+logger.info("Passport.js initialized");
 
 // Router middleware
 app.use(router);
+logger.info("Routes are set up");
 
-// Sunucu başlatma
+// Server start
 app.listen(PORT, () => {
-  console.log(`Example app listening at http://localhost:${PORT}`);
+  logger.info(`Server started on http://localhost:${PORT}`);
 });

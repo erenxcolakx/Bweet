@@ -6,6 +6,7 @@ import * as emailModel from '../model/mailModel.js';
 import { sendVerificationEmail, generateVerificationToken } from '../model/mailModel.js';
 import { Session } from 'express-session';
 import passport from "passport";
+import logger from '../config/logger';
 
 const saltRounds = 10;
 
@@ -28,43 +29,44 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
     if (result) {
       const user = result;
       const storedHashedPassword = user.password;
-      // Şifre doğrulama
+      
       if (storedHashedPassword) {
         const isMatch = await bcrypt.compare(loginPassword, storedHashedPassword);
         if (isMatch) {
-          // Kullanıcının doğrulanıp doğrulanmadığını kontrol et
           if (!user.is_verified) {
-            // Kullanıcı doğrulanmamış, doğrulama e-postasını yeniden gönder
             const token = generateVerificationToken(user.user_id);
             sendVerificationEmail(user.email, token);
 
+            logger.info(`Login attempt for unverified user: ${user.email}`);
             return res.status(403).json({
               success: false,
               message: "Your email is not verified. A new verification email has been sent."
             });
           }
 
-          // Kullanıcı doğrulanmışsa oturum aç
-          (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name};
+          (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name };
           req.session.save((err) => {
             if (err) {
-              console.error("Session save error:", err);
+              logger.error(`Session save error for user ${user.email}: ${err.message}`);
               return res.status(500).json({ success: false, message: "Session save error" });
             }
-            console.log("Session save success");
+            logger.info(`User ${user.email} logged in successfully`);
             res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id, name: user.name } });
           });
         } else {
+          logger.warn(`Incorrect password attempt for user: ${user.email}`);
           res.status(500).json({ success: false, message: "Incorrect password" });
         }
       } else {
+        logger.warn(`Password not found for user: ${user.email}`);
         res.status(401).json({ success: false, message: "Incorrect password" });
       }
     } else {
+      logger.warn(`User not found with email: ${email}`);
       res.status(404).json({ success: false, message: "User not found. You can create new account" });
     }
   } catch (err) {
-    console.log(err);
+    logger.error(`Login error for email ${email}: ${err}`);
     res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
@@ -73,65 +75,72 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
   export const handleRegister = async (req: Request, res: Response, next: NextFunction) => {
     const email = req.body.username;
     const password = req.body.password;
-
+  
     try {
       const user = await authModel.getUserByEmail(email);
-
       if (user) {
+        logger.warn(`Registration attempt for existing email: ${email}`);
         res.status(409).json({ success: false, message: 'Email already exists. Try logging in.' });
       } else {
         bcrypt.hash(password, saltRounds, async (err, hash) => {
           if (err) {
-            console.log("Error hashing password", err);
+            logger.error(`Error hashing password for email ${email}: ${err}`);
             res.status(500).json({ success: false, message: 'Internal server error' });
           } else {
             const newUser = await authModel.createUser(email, hash);
             const token = emailModel.generateVerificationToken(newUser.user_id);
             emailModel.sendVerificationEmail(newUser.email, token);
+            logger.info(`User registered successfully: ${newUser.email}`);
             res.status(201).json({ success: true, message: 'Registration successful. Please check your email to verify your account.' });
           }
         });
       }
     } catch (error) {
-      console.log(error);
+      logger.error(`Registration error for email ${email}: ${error}`);
       res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
 
-  export const handleEmailVerification = async (req: Request, res: Response, next: NextFunction) => {
-    const token = req.query.token as string;
-    const secretKey = process.env.JWT_SECRET;
-    if (!secretKey) {
-      throw new Error("JWT_SECRET environment variable is not defined");
-    }
-    try {
-      const decoded = jwt.verify(token, secretKey) as { userId: number }; // Token'ı çözümlüyoruz
-      const userId = decoded.userId;
-      // Kullanıcıyı veritabanında doğrulanmış olarak işaretle
-      await authModel.verifyUser(userId); // `verifyUser` adında bir fonksiyon olmalı
-      res.status(200).json({ success: true, message: 'Email verified successfully!' });
-    } catch (error) {
-      res.status(400).json({ success: false, message: 'Invalid or expired token.' });
-    }
-  };
+// Email Verification Handler
+export const handleEmailVerification = async (req: Request, res: Response, next: NextFunction) => {
+  const token = req.query.token as string;
+  const secretKey = process.env.JWT_SECRET;
+  if (!secretKey) {
+    logger.error("JWT_SECRET environment variable is not defined");
+    throw new Error("JWT_SECRET environment variable is not defined");
+  }
+  try {
+    const decoded = jwt.verify(token, secretKey) as { userId: number };
+    const userId = decoded.userId;
+    await authModel.verifyUser(userId);
+    logger.info(`User ${userId} verified their email successfully`);
+    res.status(200).json({ success: true, message: 'Email verified successfully!' });
+  } catch (error) {
+    logger.error(`Invalid or expired token for email verification: ${error}`);
+    res.status(400).json({ success: false, message: 'Invalid or expired token.' });
+  }
+};
 
 // Handle logout
 export const handleLogout = (req: Request, res: Response, next: NextFunction) => {
   req.session.destroy((err: Error) => {
-      if (err) {
-          console.log("Error destroying session: " + err);
-          res.status(500).json({ success: false, message: "Error destroying session" });
-      } else {
-          res.status(200).json({ success: true, message: "Logout successful" });
-      }
+    if (err) {
+      logger.error(`Error destroying session: ${err}`);
+      res.status(500).json({ success: false, message: "Error destroying session" });
+    } else {
+      logger.info('User logged out successfully');
+      res.status(200).json({ success: true, message: "Logout successful" });
+    }
   });
 };
 
+// Handle account deletion
 export const deleteAccount = async (req: Request, res: Response) => {
   try {
     const userId = (req.session as CustomSession).user.user_id; // Get the user ID from the session
 
     if (!userId) {
+      logger.warn('Unauthorized account deletion attempt');
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
@@ -141,36 +150,37 @@ export const deleteAccount = async (req: Request, res: Response) => {
     // Destroy session after deletion
     req.session.destroy((err) => {
       if (err) {
+        logger.error(`Failed to destroy session after deleting user: ${userId}`);
         return res.status(500).json({ success: false, message: 'Failed to delete account' });
       }
+      logger.info(`User account deleted successfully: ${userId}`);
       return res.status(200).json({ success: true, message: 'Account deleted successfully' });
     });
   } catch (error) {
-    console.error('Error deleting account:', error);
+    logger.error(`Error deleting account for user ${req.session}: ${error}`);
     res.status(500).json({ success: false, message: 'Internal server error' });
   }
 };
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() || req.session && (req.session as CustomSession).user) {  // Passport.js'in oturum doğrulama fonksiyonu
-    console.log("Session in isAuthenticated:", req.session);
-    return next();  // Eğer kullanıcı oturum açtıysa, sonraki middleware'e devam et
+  if (req.isAuthenticated() || req.session && (req.session as CustomSession).user) {
+    logger.info(`User is authenticated: ${req.session}`);
+    return next();
   }
-
-  console.log("You must be logged in to view this page");
+  logger.warn('Unauthorized access attempt');
   res.status(401).json({ success: false, message: "You must be logged in to view this page" });
 };
 
 
+// Check Auth
 export const checkAuth = (req: Request, res: Response) => {
   const user = (req.session as CustomSession)?.user;
-
   if (user && user.user_id) {
-    // Kullanıcı giriş yapmışsa oturum verisini döndür
+    logger.info(`User is authenticated: ${user.email}`);
     res.status(200).json({ success: true, user });
   } else {
-    // Kullanıcı oturum açmamışsa hata döndür
+    logger.warn('Check auth failed. User not authenticated');
     res.status(401).json({ success: false, message: "Not authenticated" });
   }
 };
@@ -179,43 +189,32 @@ export const checkAuth = (req: Request, res: Response) => {
 // Google OAuth yönlendirmesi
 export const googleLogin = passport.authenticate('google', { scope: ['profile', 'email'] });
 
-// Google OAuth geri dönüş işlemi
-/*
--------------------------------
-Giriş bilgilerini frontend'e göndermediğimiz içi frontend'in korumalı route'unda sıkıntı çıkıyor
-ek olarak passport içindeki gömülü isAuthenticated fonksiyonu google dışı girişlerde çalışacak mı dene
-*/
+// Google OAuth callback
 export const googleCallback = (req: Request, res: Response) => {
-  console.log(req, "in")
   if (!req.user) {
+    logger.error('Google authentication failed');
     return res.status(401).json({ success: false, message: "Authentication failed" });
   }
-
-  // `req.user` tipini doğru belirlemek için:
   const user = req.user as { user_id: number; email: string; name: string };
-
-  (req.session as CustomSession).user = {
-    user_id: user.user_id,
-    email: user.email,
-    name: user.name,
-  };
-
+  (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name };
   req.session.save((err) => {
     if (err) {
+      logger.error(`Session save error after Google login for user: ${user.email}`);
       return res.status(500).json({ success: false, message: "Session save error" });
     }
-
+    logger.info(`User logged in via Google: ${user.email}`);
     res.redirect('http://localhost:3000/home');
   });
 };
 
-// Çıkış işlemi
+// Logout for OAuth or normal logouts
 export const logout = (req: Request, res: Response, next: NextFunction) => {
   req.logout((err) => {
     if (err) {
-      console.error('Logout error:', err);
+      logger.error('Error during logout:', err);
       return res.status(500).send('Logout failed');
     }
+    logger.info(`User logged out successfully via OAuth: ${req.session}`);
     res.status(200).json({ success: true, message: "Logout successful" });
   });
 };
