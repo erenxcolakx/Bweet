@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import '../styles/Home.css'
 
 interface Book {
   title: string;
@@ -12,6 +14,12 @@ interface Book {
 
 const TrendingBooks: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
+
+  const navigate = useNavigate();
+
+  const handleBookClick = (title: string, author: string) => {
+    navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`);
+  };
 
   useEffect(() => {
     // Trending books API çağrısı
@@ -50,7 +58,10 @@ const TrendingBooks: React.FC = () => {
               style={{maxHeight:'350px'}}
             />
             <div className="card-body">
-              <h5 className="card-title oswald-sm">{book.title}</h5>
+              <h5 className="book-text oswald-sm card-title"
+                style={{ cursor: 'pointer' }}
+                onClick={() => handleBookClick(book.title, book.author)}>{book.title}
+              </h5>
               <p className="card-text">Author: {book.author}</p>
               <p className="card-text">Rating: {book.rating}</p>
               <p className="card-text">Comments: {book.review_count}</p>

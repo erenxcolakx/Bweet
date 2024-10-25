@@ -35,7 +35,7 @@ const App: React.FC = () => {
           <Route path="/register" element={<RegisterPage />} />
           {/* Protected Route */}
           <Route path='/books' element={<ProtectedRoute element={<BooksPage />} />} />
-          <Route path="/books/:bookId" element={<ProtectedRoute element={<BookPostsPage />} />} />
+          <Route path="/books/:title/:author" element={<ProtectedRoute element={<BookPostsPage />} />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route path='/myprofile' element={<MyProfilePage />} />
           <Route path='/home' element={<ProtectedRoute element={<PublicBooksPage />} />} />

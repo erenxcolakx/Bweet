@@ -46,8 +46,8 @@ const FilterBookSearchDB: React.FC = () => {
   };
 
   // Bir kitaba tıklandığında yönlendirme yapılıyor
-  const handleBookClick = (bookId: number) => {
-    navigate(`/books/${bookId}`); // Kitap sayfasına yönlendirme
+  const handleBookClick = (title: string, author: string) => {
+    navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`); // Title ve author bilgileriyle yönlendirme
   };
 
   return (
@@ -68,7 +68,7 @@ const FilterBookSearchDB: React.FC = () => {
               <li
                 key={index}
                 className="list-group-item"
-                onClick={() => handleBookClick(book.id)} // Tıklanıldığında kitaba yönlendirme
+                onClick={() => handleBookClick(book.title, book.author)} // Tıklanıldığında kitaba yönlendirme
                 style={{ cursor: 'pointer' }}
               >
                 <div className="d-flex align-items-center">

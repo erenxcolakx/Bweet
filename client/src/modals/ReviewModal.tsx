@@ -27,8 +27,8 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ isOpen, onClose, title, autho
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+    <div className="modal-overlay mt-5 pt-5" onClick={onClose}>
+      <div className="modal-content mt-5" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close-button" onClick={onClose}>
           &times;
         </button>

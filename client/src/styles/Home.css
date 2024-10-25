@@ -1,0 +1,10 @@
+.trending-books {
+    .book-text {
+        color: black;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      .book-text:hover {
+        color: rgb(64, 0, 191); /* Üzerine gelindiğinde rengi kırmızı yap */
+      }
+}
