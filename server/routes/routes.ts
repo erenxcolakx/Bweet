@@ -1,4 +1,5 @@
 import express from 'express';
+import { body } from 'express-validator';
 import * as postController from '../controllers/postController';
 import * as auth from '../controllers/auth';
 import * as profileController from '../controllers/profileController';
@@ -6,14 +7,18 @@ import multer from 'multer';
 const router = express.Router();
 import passport from '../controllers/passport'; // Google OAuth için passport yapılandırması
 import convertImagesToBase64 from '../middlewares/convertImagesToBase64';
+const FILE_SIZE_LIMIT = 1 * 1024 * 1024;
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 1 * 1024 * 1024 }  // 1 MB dosya boyutu sınırı
+  limits: {  fileSize: FILE_SIZE_LIMIT }  // 1 MB dosya boyutu sınırı
 });
 
 // Mevcut Auth ve Profile işlemleri
-router.route("/api/login").post(auth.handleLogin);
+router.route("/api/login").post([
+  body('email').isEmail(),
+  body('password').isLength({ min: 6 })
+], auth.handleLogin);
 router.route("/api/register").post(auth.handleRegister);
 router.route("/api/verify-email").get(auth.handleEmailVerification);
 router.route("/api/profile").get(auth.isAuthenticated, profileController.getProfile);
@@ -25,7 +30,7 @@ router.route("/api/logout").get(auth.handleLogout);
 // Books işlemleri
 router.route("/api/books").get(auth.isAuthenticated, convertImagesToBase64, postController.getPosts);
 router.route("/api/books/search").get(auth.isAuthenticated, convertImagesToBase64, postController.searchBooks);
-router.route('/api/books/:bookId').get(auth.isAuthenticated, convertImagesToBase64, postController.getBookPosts);
+router.route('/api/books/:title/:author').get(auth.isAuthenticated, convertImagesToBase64, postController.getBookPosts);
 router.route("/api/submit").post(auth.isAuthenticated, upload.single('coverImage'), postController.addPost);
 router.route("/api/edit").post(auth.isAuthenticated, postController.updatePost);
 router.route("/api/sort").post(auth.isAuthenticated, convertImagesToBase64, postController.sortPosts);

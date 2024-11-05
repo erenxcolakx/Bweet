@@ -29,10 +29,9 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
     navigate(`/user/${post.user_id}`); // Profil sayfasına yönlendirme
   };
 
-  const handleBookClick = (bookId: number) => {
-    navigate(`/books/${bookId}`); // Kitap sayfasına yönlendirme
+  const handleBookClick = (title: string, author: string) => {
+    navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`); // Title ve author bilgileriyle yönlendirme
   };
-
   return (
     <div className='post container'> {/* Just for class filtering */}
       <div className="card mb-3" style={{ maxWidth: '1000px', margin: 'auto', border: '1px solid #dee2e6' }}>
@@ -79,7 +78,7 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
                       <span
                         className="book-text fw-bold"
                         style={{cursor: 'pointer'}}
-                        onClick={() => handleBookClick(post.id)}>
+                        onClick={() => handleBookClick(post.title, post.author)}>
                         {post.title}
                       </span>
                       <span className="text-muted">

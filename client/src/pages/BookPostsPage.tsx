@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 
 interface Book {
-  book_id: number;
   cover_id: number | null;
   cover_image: Buffer | null;
   title: string;
@@ -14,7 +13,7 @@ interface Book {
 
 const BookPosts: React.FC = () => {
   const navigate = useNavigate();
-  const { bookId } = useParams<{ bookId: string }>(); // URL parametresinden bookId'yi alıyoruz
+  const { title, author } = useParams<{ title: string; author: string }>(); // URL parametresinden title ve author bilgilerini alıyoruz
   interface Post {
     id: number;
     user_id: number;
@@ -28,24 +27,30 @@ const BookPosts: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null); // Kitap detaylarını tutmak için state
   const [loading, setLoading] = useState<boolean>(true); // Yükleme durumunu tutmak için
 
-
   useEffect(() => {
+    if (!title || !author) {
+      console.error('Title or Author is missing');
+      setLoading(false); // Hata durumunda yükleme tamamlandı olarak ayarla
+      return;
+    }
+
     const fetchBookPosts = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/books/${bookId}`, {
-            withCredentials: true,
-        }); // Kitap ve yorumları backend'den çek
-        setBook(response.data.book); // Kitap detaylarını state'e set et
-        setPosts(response.data.posts); // Yorumları state'e set et
-        setLoading(false); // Yükleme durumunu kapat
+        const response = await axios.get(
+          `${process.env.REACT_APP_SERVER_ADDRESS}/api/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`, 
+          { withCredentials: true }
+        );
+        setBook(response.data.book);
+        setPosts(response.data.posts);
+        setLoading(false);
       } catch (error) {
         console.error('Error fetching book comments:', error);
-        setLoading(false); // Yükleme hatası durumunda kapat
+        setLoading(false);
       }
     };
 
     fetchBookPosts();
-  }, [bookId]);
+  }, [title, author]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -83,7 +88,7 @@ const BookPosts: React.FC = () => {
 
         {posts.length > 0 ? (
             posts.map(post => (
-              <div key={post.id} className="card mb-3" style={{margin: 'auto', border: '1px solid #dee2e6' }}>
+              <div key={post.id} className="card mb-3 post" style={{margin: 'auto', border: '1px solid #dee2e6' }}>
                 <div className="row g-0">
                   <div className="col-md-12">
                     <div className="card-body">

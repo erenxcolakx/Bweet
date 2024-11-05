@@ -35,9 +35,10 @@ const UserPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleBookClick = (bookId: number) => {
-    navigate(`/books/${bookId}`); // Kitap sayfasına yönlendirme
+  const handleBookClick = (title: string, author: string) => {
+    navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`); // Title ve author bilgileriyle yönlendirme
   };
+  
 
   useEffect(() => {
     if (!user) {
@@ -114,7 +115,7 @@ const UserPage: React.FC = () => {
                       <div className="d-flex justify-content-center align-items-center">
                         <div className="d-flex flex-column">
                           <div className="d-flex flex-column justify-content-center">
-                              <h6 className="card-title mb-1 oswald-mid book-text" onClick={()=>handleBookClick(post.post_id)} style={{fontSize:"25px"}}>{post.title}</h6>
+                              <h6 className="card-title mb-1 oswald-mid book-text" onClick={()=>handleBookClick(post.title, post.author)} style={{fontSize:"25px"}}>{post.title}</h6>
                               <span className="text-black text-center fw-light fst-italic">{post.author}</span>
                           </div>
                         </div>

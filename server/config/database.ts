@@ -1,5 +1,6 @@
 import pg from 'pg';
 import env from 'dotenv'
+import logger from '../config/logger';
 env.config();
 
 const requiredEnvVariables = ['PG_USER', 'PG_HOST', 'PG_DATABASE', 'PG_PASSWORD', 'PG_PORT'] as const;
@@ -21,10 +22,10 @@ const db = new pg.Client({
 
 db.connect()
   .then(() => {
-    console.log('Connected to database');
+    logger.info('Connected to database');
   })
   .catch((error) => {
-    console.error('An error occurred while connecting:', error);
+    logger.error('An error occurred while connecting:', error);
   });
 
 export default db;
