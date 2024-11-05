@@ -4,6 +4,7 @@ Bweet is a book review app designed for book enthusiasts to easily add, edit and
 
 <img src="https://github.com/erenxcolakx/BookNotes/blob/main/public/images/Bweet.gif" width="600px"/>
 Made with Figma
+
 ## Features
 
 - **Search:** Easily find book titles to add reviews.
