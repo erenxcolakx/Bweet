@@ -35,13 +35,13 @@ if (!process.env.SECRET_KEY) {
 // Session configuration
 app.use(session({
   secret: process.env.SECRET_KEY!,
-  resave: false, // Only save session if modified
-  saveUninitialized: false, // Do not save empty sessions
+  resave: false,
+  saveUninitialized: false,
   cookie: {
-    secure: false, // Set to true if HTTPS is used
-    httpOnly: true, // Prevent JavaScript access to cookies
-    maxAge: 24 * 60 * 60 * 1000, // 24-hour session lifetime
-    sameSite: 'lax' // Cross-site request protection
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 24 * 60 * 60 * 1000,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
   }
 }));
 logger.info("Session middleware configured");

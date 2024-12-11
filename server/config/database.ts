@@ -3,22 +3,18 @@ import env from 'dotenv'
 import logger from '../config/logger';
 env.config();
 
-const requiredEnvVariables = ['PG_USER', 'PG_HOST', 'PG_DATABASE', 'PG_PASSWORD', 'PG_PORT'] as const;
+const isProduction = process.env.NODE_ENV === 'production';
 
-const missingEnvVariables = requiredEnvVariables.filter((variable) => !process.env[variable]);
-
-if (missingEnvVariables.length > 0) {
-  throw new Error(`Missing environment variables: ${missingEnvVariables.join(', ')}`);
-}
+const connectionString = isProduction
+  ? process.env.DATABASE_URL // You'll need to add this to Vercel environment variables
+  : `postgresql://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_DATABASE}`;
 
 const db = new pg.Client({
-  user: process.env.PG_USER as string,
-  host: process.env.PG_HOST as string,
-  database: process.env.PG_DATABASE as string,
-  password: process.env.PG_PASSWORD as string,
-  port: parseInt(process.env.PG_PORT as string, 10),
+  connectionString,
+  ssl: isProduction ? {
+    rejectUnauthorized: false
+  } : false
 });
-
 
 db.connect()
   .then(() => {
