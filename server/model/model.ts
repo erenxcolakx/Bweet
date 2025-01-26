@@ -16,14 +16,18 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
       .from('users')
       .select('*')
       .eq('email', email)
-      .single();
+      .maybeSingle();
 
-    if (error) throw error;
+    if (error) {
+      logger.error(`Error fetching user by email: ${email}`, { error });
+      return null;
+    }
+
     logger.info(`Fetched user by email: ${email}`);
     return data;
   } catch (error) {
     logger.error(`Error fetching user by email: ${email}`, { error });
-    throw error;
+    return null;
   }
 };
 

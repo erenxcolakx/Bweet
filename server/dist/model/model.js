@@ -21,15 +21,17 @@ const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* ()
             .from('users')
             .select('*')
             .eq('email', email)
-            .single();
-        if (error)
-            throw error;
+            .maybeSingle();
+        if (error) {
+            logger_1.default.error(`Error fetching user by email: ${email}`, { error });
+            return null;
+        }
         logger_1.default.info(`Fetched user by email: ${email}`);
         return data;
     }
     catch (error) {
         logger_1.default.error(`Error fetching user by email: ${email}`, { error });
-        throw error;
+        return null;
     }
 });
 exports.getUserByEmail = getUserByEmail;
