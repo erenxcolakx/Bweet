@@ -51,7 +51,7 @@ export function sendVerificationEmail(userEmail: string, token: string | undefin
 
   // Email data setup
   const emailData = {
-    from: `Bweet <postmaster@${process.env.MAILGUN_DOMAIN}>`,
+    from: `Bweet <bweetapp@gmail.com>`,
     to: userEmail,
     subject: 'Verify your email',
     text: `Please verify your email by clicking the link: ${verificationUrl}`,
