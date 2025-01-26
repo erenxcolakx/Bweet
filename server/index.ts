@@ -5,7 +5,11 @@ import env from 'dotenv';
 import cors from 'cors';
 import passport from "./controllers/passport";  // Passport.js configuration
 import logger from './config/logger';  // Import the logger
-env.config();
+env.config({
+  path: process.env.NODE_ENV === 'production'
+    ? '.env.production'
+    : '.env.development'
+});
 
 const app = express();
 const PORT = process.env.PORT || 4000;

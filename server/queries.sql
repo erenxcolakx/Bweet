@@ -2,7 +2,7 @@
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     email TEXT NOT NULL UNIQUE,
-    name VARCHAR(70)
+    name VARCHAR(70),
     password TEXT,
     google_id VARCHAR(255),
     is_verified BOOLEAN DEFAULT FALSE
@@ -17,6 +17,6 @@ CREATE TABLE books (
     rating FLOAT,
     time TIMESTAMP,
 	user_id INT,
-    FOREIGN KEY (user_id) REFERENCES users (user_id)
-    is_public BOOLEAN DEFAULT false;
+    FOREIGN KEY (user_id) REFERENCES users (user_id),
+    is_public BOOLEAN DEFAULT false
 );
