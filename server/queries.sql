@@ -1,22 +1,22 @@
-/*You should create database named "book"*/
 CREATE TABLE users (
-    user_id SERIAL PRIMARY KEY,
+    user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email TEXT NOT NULL UNIQUE,
-    name VARCHAR(70),
+    name TEXT,
     password TEXT,
-    google_id VARCHAR(255),
+    google_id TEXT,
     is_verified BOOLEAN DEFAULT FALSE
 );
 
 CREATE TABLE books (
-    book_id SERIAL PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     title TEXT,
     author TEXT,
     cover_id INT,
     review TEXT,
     rating FLOAT,
-    time TIMESTAMP,
-	user_id INT,
+    time TIMESTAMP WITH TIME ZONE,
+    user_id UUID,
     FOREIGN KEY (user_id) REFERENCES users (user_id),
-    is_public BOOLEAN DEFAULT false
+    is_public BOOLEAN DEFAULT FALSE,
+    cover_image BYTEA
 );

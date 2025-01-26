@@ -28,14 +28,22 @@ export function generateVerificationToken(userId: number) {
 
 // Mailgun client setup
 const mailgun = new Mailgun(formData);
-const mg = mailgun.client({ username: 'api', key: process.env.MAILGUN_API_KEY || 'key-yourkeyhere' });
+const mg = mailgun.client({
+  username: 'api',
+  key: process.env.MAILGUN_API_KEY || '' // API key kontrolü ekleyelim
+});
 
 export function sendVerificationEmail(userEmail: string, token: string | undefined) {
-  const verificationUrl = `${process.env.BASE_URL}/verify-email?token=${token}`;
+  if (!process.env.MAILGUN_API_KEY || !process.env.MAILGUN_DOMAIN) {
+    logger.error('Mailgun configuration is missing');
+    throw new Error('Mailgun configuration is missing');
+  }
+
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
   // Email data setup
   const emailData = {
-    from: 'Bweet <bweetapp@gmail.com>',
+    from: `Bweet <postmaster@${process.env.MAILGUN_DOMAIN}>`, // Sandbox domain kullanıyoruz
     to: userEmail,
     subject: 'Verify your email',
     text: `Please verify your email by clicking the link: ${verificationUrl}`,
@@ -43,11 +51,14 @@ export function sendVerificationEmail(userEmail: string, token: string | undefin
   };
 
   // Sending email with Mailgun
-  mg.messages.create(process.env.MAILGUN_DOMAIN || 'sandbox123.mailgun.org', emailData)
+  return mg.messages
+    .create(process.env.MAILGUN_DOMAIN, emailData)
     .then(msg => {
-      logger.info(`Verification email sent to ${userEmail}: ${msg}`); // Log email sending success
+      logger.info(`Verification email sent to ${userEmail}: ${JSON.stringify(msg)}`);
+      return true;
     })
     .catch(err => {
-      logger.error(`Error sending verification email to ${userEmail}: ${err}`); // Log email sending failure
+      logger.error(`Error sending verification email to ${userEmail}: ${err}`);
+      throw err;
     });
 }
