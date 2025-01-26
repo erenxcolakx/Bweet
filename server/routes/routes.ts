@@ -54,4 +54,18 @@ router.route('/api/google/callback').get(
 // Google ve genel çıkış işlemi
 router.route('/api/logout').get(auth.logout); // Google logout işlemi için controller'a yönlendirme
 
+// Root path yönlendirmesi
+router.route("/").get((req, res) => {
+  res.redirect(process.env.FRONTEND_URL || 'https://bweet-fe.vercel.app/');
+});
+
+// Favicon yönlendirmeleri
+router.route("/favicon.ico").get((req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL}/favicon.ico`);
+});
+
+router.route("/favicon.png").get((req, res) => {
+  res.redirect(`${process.env.FRONTEND_URL}/favicon.png`);
+});
+
 export default router;

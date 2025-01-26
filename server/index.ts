@@ -70,24 +70,6 @@ logger.info("Passport.js initialized");
 app.use(router);
 logger.info("Routes are set up");
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({ 
-    message: 'Welcome to Bweet API',
-    status: 'running',
-    environment: process.env.NODE_ENV
-  });
-});
-
-// Handle favicon requests
-app.get('/favicon.ico', (req, res) => {
-  res.status(204).end();
-});
-
-app.get('/favicon.png', (req, res) => {
-  res.status(204).end();
-});
-
 // Server start
 app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);
