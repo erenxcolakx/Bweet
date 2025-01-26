@@ -5,6 +5,7 @@ import env from 'dotenv';
 import cors from 'cors';
 import passport from "./controllers/passport";  // Passport.js configuration
 import logger from './config/logger';  // Import the logger
+import path from 'path';
 env.config({
   path: process.env.NODE_ENV === 'production'
     ? '.env.production'
@@ -16,6 +17,7 @@ const PORT = process.env.PORT || 4000;
 
 // Static files
 app.use(express.static("public"));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Body parser middleware
 app.use(express.urlencoded({ extended: true }));
@@ -67,6 +69,24 @@ logger.info("Passport.js initialized");
 // Router middleware
 app.use(router);
 logger.info("Routes are set up");
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Welcome to Bweet API',
+    status: 'running',
+    environment: process.env.NODE_ENV
+  });
+});
+
+// Handle favicon requests
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
+app.get('/favicon.png', (req, res) => {
+  res.status(204).end();
+});
 
 // Server start
 app.listen(PORT, () => {
