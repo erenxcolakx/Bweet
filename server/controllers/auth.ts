@@ -203,7 +203,7 @@ export const googleCallback = (req: Request, res: Response) => {
       return res.status(500).json({ success: false, message: "Session save error" });
     }
     logger.info(`User logged in via Google: ${user.email}`);
-    res.redirect('http://localhost:3000/home');
+    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000/home');
   });
 };
 

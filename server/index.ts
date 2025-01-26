@@ -70,5 +70,5 @@ logger.info("Routes are set up");
 
 // Server start
 app.listen(PORT, () => {
-  logger.info(`Server started on http://localhost:${PORT}`);
+  logger.info(`Server is running on port ${PORT}`);
 });

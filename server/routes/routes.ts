@@ -45,8 +45,10 @@ router.route('/api/google').get(auth.googleLogin);
 
 // Google OAuth geri dönüş işlemi
 router.route('/api/google/callback').get(
-  passport.authenticate('google', { failureRedirect: 'http://localhost:3000/login' }),
-  auth.googleCallback // Google OAuth callback fonksiyonuna yönlendirme
+  passport.authenticate('google', {
+    failureRedirect: `${process.env.FRONTEND_URL}/login`
+  }),
+  auth.googleCallback
 );
 
 // Google ve genel çıkış işlemi

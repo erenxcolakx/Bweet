@@ -1,4 +1,4 @@
-import db from '../config/database';
+import supabase from '../config/database';
 import logger from '../config/logger';  // Import the logger
 
 interface User {
@@ -12,9 +12,15 @@ interface User {
 
 export const getUserByEmail = async (email: string): Promise<User | null> => {
   try {
-    const result = await db.query("SELECT * FROM users WHERE email = $1", [email]);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (error) throw error;
     logger.info(`Fetched user by email: ${email}`);
-    return result.rows[0] || null;
+    return data;
   } catch (error) {
     logger.error(`Error fetching user by email: ${email}`, { error });
     throw error;
@@ -23,9 +29,15 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
 
 export const getUserById = async (user_id: number) => {
   try {
-    const result = await db.query('SELECT user_id, email, name FROM users WHERE user_id = $1', [user_id]);
+    const { data, error } = await supabase
+      .from('users')
+      .select('user_id, email, name')
+      .eq('user_id', user_id)
+      .single();
+
+    if (error) throw error;
     logger.info(`Fetched user by ID: ${user_id}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error fetching user by ID: ${user_id}`, { error });
     throw error;
@@ -34,22 +46,28 @@ export const getUserById = async (user_id: number) => {
 
 export const getPublicUserInfosById = async (user_id: number) => {
   try {
-    const result = await db.query(`
-      SELECT
-        u.user_id,
-        u.name,
-        b.*
-      FROM users u
-      LEFT JOIN books b ON u.user_id = b.user_id
-      WHERE u.user_id = $1 AND (b.is_public = true OR b.is_public IS NULL)
-    `, [user_id]);
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('user_id, name')
+      .eq('user_id', user_id)
+      .single();
+
+    if (userError) throw userError;
+
+    const { data: postsData, error: postsError } = await supabase
+      .from('books')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('is_public', true);
+
+    if (postsError) throw postsError;
 
     logger.info(`Fetched public user info by ID: ${user_id}`);
 
-    const userInfo = {
-      user_id: result.rows[0].user_id,
-      name: result.rows[0].name,
-      posts: result.rows.filter(row => row.book_id !== null).map(row => ({
+    return {
+      user_id: userData.user_id,
+      name: userData.name,
+      posts: postsData.map(row => ({
         post_id: row.id,
         title: row.title,
         author: row.author,
@@ -61,20 +79,24 @@ export const getPublicUserInfosById = async (user_id: number) => {
         time: row.time
       }))
     };
-
-    return userInfo;
   } catch (error) {
     logger.error(`Error fetching public user info by ID: ${user_id}`, { error });
     throw error;
   }
 };
 
-
 export const updateUserName = async (user_id: number, name: string) => {
   try {
-    const result = await db.query('UPDATE users SET name = $1 WHERE user_id = $2 RETURNING *', [name, user_id]);
+    const { data, error } = await supabase
+      .from('users')
+      .update({ name })
+      .eq('user_id', user_id)
+      .select()
+      .single();
+
+    if (error) throw error;
     logger.info(`Updated username for user ID: ${user_id}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error updating username for user ID: ${user_id}`, { error });
     throw error;
@@ -83,12 +105,17 @@ export const updateUserName = async (user_id: number, name: string) => {
 
 export const createUser = async (email: string, hashedPassword: string): Promise<{ user_id: number, email: string }> => {
   try {
-    const result = await db.query(
-      "INSERT INTO users (email, password, is_verified) VALUES ($1, $2, $3) RETURNING user_id, email",
-      [email, hashedPassword, false]
-    );
+    const { data, error } = await supabase
+      .from('users')
+      .insert([
+        { email, password: hashedPassword, is_verified: false }
+      ])
+      .select('user_id, email')
+      .single();
+
+    if (error) throw error;
     logger.info(`Created new user: ${email}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error creating user: ${email}`, { error });
     throw error;
@@ -97,14 +124,27 @@ export const createUser = async (email: string, hashedPassword: string): Promise
 
 export const deleteUserById = async (user_id: number) => {
   try {
-    await db.query('BEGIN');
-    await db.query('DELETE FROM books WHERE user_id = $1', [user_id]);
-    const result = await db.query('DELETE FROM users WHERE user_id = $1 RETURNING *', [user_id]);
-    await db.query('COMMIT');
+    // Delete books first
+    const { error: booksError } = await supabase
+      .from('books')
+      .delete()
+      .eq('user_id', user_id);
+
+    if (booksError) throw booksError;
+
+    // Then delete user
+    const { data, error: userError } = await supabase
+      .from('users')
+      .delete()
+      .eq('user_id', user_id)
+      .select()
+      .single();
+
+    if (userError) throw userError;
+
     logger.info(`Deleted user and books for user ID: ${user_id}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
-    await db.query('ROLLBACK');
     logger.error(`Error deleting user by ID: ${user_id}`, { error });
     throw error;
   }
@@ -112,7 +152,12 @@ export const deleteUserById = async (user_id: number) => {
 
 export const verifyUser = async (userId: number) => {
   try {
-    await db.query("UPDATE users SET is_verified = true WHERE user_id = $1", [userId]);
+    const { error } = await supabase
+      .from('users')
+      .update({ is_verified: true })
+      .eq('user_id', userId);
+
+    if (error) throw error;
     logger.info(`Verified user with ID: ${userId}`);
   } catch (error) {
     logger.error(`Error verifying user with ID: ${userId}`, { error });
@@ -134,9 +179,14 @@ interface Post {
 
 export const getAllPosts = async (userId: number): Promise<Post[]> => {
   try {
-    const result = await db.query('SELECT * FROM books WHERE user_id = $1', [userId]);
+    const { data, error } = await supabase
+      .from('books')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) throw error;
     logger.info(`Fetched all posts for user with ID: ${userId}`);
-    return result.rows;
+    return data;
   } catch (error) {
     logger.error(`Error fetching posts for user with ID: ${userId}`, { error });
     throw error;
@@ -145,9 +195,14 @@ export const getAllPosts = async (userId: number): Promise<Post[]> => {
 
 export const getPublicPosts = async () => {
   try {
-    const result = await db.query('SELECT books.*, users.user_id, users.name FROM books INNER JOIN users ON books.user_id = users.user_id WHERE books.is_public = true;');
+    const { data, error } = await supabase
+      .from('books')
+      .select('*, users!inner(user_id, name)')
+      .eq('is_public', true);
+
+    if (error) throw error;
     logger.info('Fetched all public posts');
-    return result.rows;
+    return data;
   } catch (error) {
     logger.error('Error fetching public posts', { error });
     throw error;
@@ -156,15 +211,17 @@ export const getPublicPosts = async () => {
 
 export const addPostWithCoverId = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean, coverId: string) => {
   try {
-    const query = `
-      INSERT INTO books (title, author, review, rating, time, user_id, is_public, cover_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `;
-    const values = [title, author, review, rating, time, userId, isPublic, coverId];
-    const result = await db.query(query, values);
+    const { data, error } = await supabase
+      .from('books')
+      .insert([
+        { title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_id: coverId }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
     logger.info(`Added post with cover ID for user with ID: ${userId}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error adding post with cover ID for user with ID: ${userId}`, { error });
     throw error;
@@ -173,15 +230,17 @@ export const addPostWithCoverId = async (title: string, author: string, review: 
 
 export const addPostWithCoverImage = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean, coverImageBuffer: Buffer) => {
   try {
-    const query = `
-      INSERT INTO books (title, author, review, rating, time, user_id, is_public, cover_image)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-      RETURNING *;
-    `;
-    const values = [title, author, review, rating, time, userId, isPublic, coverImageBuffer];
-    const result = await db.query(query, values);
+    const { data, error } = await supabase
+      .from('books')
+      .insert([
+        { title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_image: coverImageBuffer }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
     logger.info(`Added post with cover image for user with ID: ${userId}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error adding post with cover image for user with ID: ${userId}`, { error });
     throw error;
@@ -190,15 +249,17 @@ export const addPostWithCoverImage = async (title: string, author: string, revie
 
 export const addPostWithoutCover = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean) => {
   try {
-    const query = `
-      INSERT INTO books (title, author, review, rating, time, user_id, is_public)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING *;
-    `;
-    const values = [title, author, review, rating, time, userId, isPublic];
-    const result = await db.query(query, values);
+    const { data, error } = await supabase
+      .from('books')
+      .insert([
+        { title, author, review, rating, time, user_id: userId, is_public: isPublic }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
     logger.info(`Added post without cover for user with ID: ${userId}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error adding post without cover for user with ID: ${userId}`, { error });
     throw error;
@@ -207,10 +268,13 @@ export const addPostWithoutCover = async (title: string, author: string, review:
 
 export const updatePost = async (postId: number, editedReview: string, editedRating: number, isPublic: boolean, time: Date, userId: number): Promise<void> => {
   try {
-    await db.query(
-      'UPDATE books SET review = $1, rating = $2, is_public = $3, time = $4 WHERE id = $5 AND user_id = $6',
-      [editedReview, editedRating, isPublic, time, postId, userId]
-    );
+    const { error } = await supabase
+      .from('books')
+      .update({ review: editedReview, rating: editedRating, is_public: isPublic, time })
+      .eq('id', postId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
     logger.info(`Updated post with ID: ${postId} for user with ID: ${userId}`);
   } catch (error) {
     logger.error(`Error updating post with ID: ${postId} for user with ID: ${userId}`, { error });
@@ -220,12 +284,15 @@ export const updatePost = async (postId: number, editedReview: string, editedRat
 
 export const searchBooks = async (searchTerm: string): Promise<any[]> => {
   try {
-    const result = await db.query(
-      `SELECT id, title, author, cover_id FROM books WHERE is_public = true AND LOWER(title) LIKE LOWER($1)`,
-      [`%${searchTerm}%`]
-    );
+    const { data, error } = await supabase
+      .from('books')
+      .select('id, title, author, cover_id')
+      .eq('is_public', true)
+      .ilike('title', `%${searchTerm}%`);
+
+    if (error) throw error;
     logger.info(`Searched books with title containing: ${searchTerm}`);
-    return result.rows;
+    return data;
   } catch (error) {
     logger.error(`Error searching books with title containing: ${searchTerm}`, { error });
     throw error;
@@ -234,9 +301,15 @@ export const searchBooks = async (searchTerm: string): Promise<any[]> => {
 
 export const getPostByBookId = async (bookId: number) => {
   try {
-    const result = await db.query('SELECT * FROM books WHERE id = $1', [bookId]);
+    const { data, error } = await supabase
+      .from('books')
+      .select('*')
+      .eq('id', bookId)
+      .single();
+
+    if (error) throw error;
     logger.info(`Fetched post with ID: ${bookId}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error fetching post with ID: ${bookId}`, { error });
     throw error;
@@ -245,66 +318,81 @@ export const getPostByBookId = async (bookId: number) => {
 
 export const getBookPostsByTitleAndAuthor = async (title: string, author: string) => {
   try {
-    const result = await db.query(
-      `SELECT books.*, users.name
-       FROM books
-       JOIN users ON books.user_id = users.user_id
-       WHERE books.title = $1 AND books.author = $2
-       ORDER BY books.time DESC`,
-      [title, author]
-    );
-    logger.info(`Fetched book posts for book with title: "${title}" and author: "${author}"`);
-    return result.rows;
+    const { data, error } = await supabase
+      .from('books')
+      .select('*, users!inner(name)')
+      .eq('title', title)
+      .eq('author', author)
+      .eq('is_public', true);
+
+    if (error) throw error;
+    logger.info(`Fetched posts for book: ${title} by ${author}`);
+    return data;
   } catch (error) {
-    logger.error(`Error fetching book posts for book with title: "${title}" and author: "${author}"`, { error });
+    logger.error(`Error fetching posts for book: ${title} by ${author}`, { error });
     throw error;
   }
 };
 
 export const deletePost = async (postId: number, userId: number): Promise<void> => {
   try {
-    await db.query('DELETE FROM books WHERE id = $1 AND user_id = $2', [postId, userId]);
-    logger.info(`Deleted post with ID: ${postId} for user with ID: ${userId}`);
+    const { error } = await supabase
+      .from('books')
+      .delete()
+      .eq('id', postId)
+      .eq('user_id', userId);
+
+    if (error) throw error;
+    logger.info(`Deleted post with ID: ${postId}`);
   } catch (error) {
-    logger.error(`Error deleting post with ID: ${postId} for user with ID: ${userId}`, { error });
+    logger.error(`Error deleting post with ID: ${postId}`, { error });
     throw error;
   }
 };
 
 export const getSortedPosts = async (sortType: string, userId: number): Promise<Post[]> => {
   try {
-    let query = '';
+    let query = supabase
+      .from('books')
+      .select('*')
+      .eq('user_id', userId);
+
     switch (sortType) {
-      case "htl":
-        query = 'SELECT * FROM books WHERE user_id = $1 ORDER BY rating DESC';
+      case 'rating':
+        query = query.order('rating', { ascending: false });
         break;
-      case "lth":
-        query = 'SELECT * FROM books WHERE user_id = $1 ORDER BY rating ASC';
+      case 'date':
+        query = query.order('time', { ascending: false });
         break;
-      case "rto":
-        query = 'SELECT * FROM books WHERE user_id = $1 ORDER BY time DESC';
-        break;
-      case "otr":
-        query = 'SELECT * FROM books WHERE user_id = $1 ORDER BY time ASC';
+      case 'title':
+        query = query.order('title');
         break;
       default:
-        throw new Error("Invalid sort type");
+        query = query.order('time', { ascending: false });
     }
-    const result = await db.query(query, [userId]);
-    logger.info(`Fetched sorted posts for user with ID: ${userId} using sort type: ${sortType}`);
-    return result.rows;
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    logger.info(`Fetched sorted posts for user with ID: ${userId}`);
+    return data;
   } catch (error) {
-    logger.error(`Error fetching sorted posts for user with ID: ${userId} using sort type: ${sortType}`, { error });
+    logger.error(`Error fetching sorted posts for user with ID: ${userId}`, { error });
     throw error;
   }
 };
 
 export const getUserByGoogleId = async (googleId: string) => {
   try {
-    const query = 'SELECT * FROM users WHERE google_id = $1';
-    const result = await db.query(query, [googleId]);
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('google_id', googleId)
+      .single();
+
+    if (error) throw error;
     logger.info(`Fetched user by Google ID: ${googleId}`);
-    return result.rows[0];
+    return data;
   } catch (error) {
     logger.error(`Error fetching user by Google ID: ${googleId}`, { error });
     throw error;
@@ -313,10 +401,17 @@ export const getUserByGoogleId = async (googleId: string) => {
 
 export const createUserWithGoogle = async (googleId: string, name: string, email: string) => {
   try {
-    const query = `INSERT INTO users (google_id, name, email, is_verified) VALUES ($1, $2, $3, $4) RETURNING *`;
-    const result = await db.query(query, [googleId, name, email, true]);
-    logger.info(`Created user with Google ID: ${googleId}`);
-    return result.rows[0];
+    const { data, error } = await supabase
+      .from('users')
+      .insert([
+        { google_id: googleId, name, email, is_verified: true }
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+    logger.info(`Created new user with Google ID: ${googleId}`);
+    return data;
   } catch (error) {
     logger.error(`Error creating user with Google ID: ${googleId}`, { error });
     throw error;
@@ -324,28 +419,19 @@ export const createUserWithGoogle = async (googleId: string, name: string, email
 };
 
 export const getTrendingBooks = async () => {
-  const TRENDING_INTERVAL = '7 days';
   try {
-    const query = `
-      SELECT
-        b.title,
-        b.author,
-        b.cover_id,
-        b.cover_image,
-        AVG(b.rating) AS rating,
-        COUNT(b.title) AS review_count
-      FROM books b
-      WHERE b.is_public = true
-        AND b.time >= NOW() - INTERVAL '${TRENDING_INTERVAL}'
-      GROUP BY b.title, b.author, b.cover_id, b.cover_image
-      ORDER BY review_count DESC
-      LIMIT 10;
-    `;
-    const result = await db.query(query);
-    logger.info(`Fetched trending books for the past ${TRENDING_INTERVAL}`);
-    return result.rows;
+    const { data, error } = await supabase
+      .from('books')
+      .select('*')
+      .eq('is_public', true)
+      .order('rating', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+    logger.info('Fetched trending books');
+    return data;
   } catch (error) {
     logger.error('Error fetching trending books', { error });
-    throw new Error('Error fetching trending books');
+    throw error;
   }
 };

@@ -1,28 +1,38 @@
-import pg from 'pg';
-import env from 'dotenv'
+import { createClient } from '@supabase/supabase-js';
+import env from 'dotenv';
 import logger from '../config/logger';
+
+// Load environment variables from .env file
 env.config();
 
-
 const isProduction = process.env.NODE_ENV === 'production';
+logger.info(`Environment: ${process.env.NODE_ENV}`);
 
-const connectionString = isProduction
-  ? process.env.DATABASE_URL
-  : `postgresql://${process.env.PG_USER}:${process.env.PG_PASSWORD}@${process.env.PG_HOST}:${process.env.PG_PORT}/${process.env.PG_DATABASE}`;
+const supabaseUrl = 'https://bdbvtpsbgrxgieyvnvig.supabase.co';
+const supabaseKey = process.env.SUPABASE_KEY;
 
-const db = new pg.Client({
-  connectionString: connectionString,
-  ssl: {
-    rejectUnauthorized: false
+if (!supabaseKey) {
+  throw new Error('SUPABASE_KEY is not defined in environment variables');
+}
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Test the connection
+async function testConnection() {
+  try {
+    const { count } = await supabase.from('books').select('*', { count: 'exact', head: true });
+    logger.info('Connected to Supabase database');
+    logger.info(`Found ${count} books in the database`);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      logger.error('An error occurred while connecting to Supabase:', error.message);
+    } else {
+      logger.error('An unknown error occurred while connecting to Supabase');
+    }
   }
-});
+}
 
-db.connect()
-  .then(() => {
-    logger.info('Connected to database');
-  })
-  .catch((error) => {
-    logger.error('An error occurred while connecting:', error);
-  });
+// Run the test
+testConnection();
 
-export default db;
+export default supabase;

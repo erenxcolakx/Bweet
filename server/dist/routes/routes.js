@@ -67,8 +67,9 @@ router.route("/api/trending-books").get(convertImagesToBase64_1.default, postCon
 // Google OAuth yönlendirmesi
 router.route('/api/google').get(auth.googleLogin);
 // Google OAuth geri dönüş işlemi
-router.route('/api/google/callback').get(passport_1.default.authenticate('google', { failureRedirect: 'http://localhost:3000/login' }), auth.googleCallback // Google OAuth callback fonksiyonuna yönlendirme
-);
+router.route('/api/google/callback').get(passport_1.default.authenticate('google', {
+    failureRedirect: `${process.env.FRONTEND_URL}/login`
+}), auth.googleCallback);
 // Google ve genel çıkış işlemi
 router.route('/api/logout').get(auth.logout); // Google logout işlemi için controller'a yönlendirme
 exports.default = router;

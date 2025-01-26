@@ -3,11 +3,14 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import * as authModel from '../model/model'; // User model
 import logger from '../config/logger'; // Import logger
 
+const isProduction = process.env.NODE_ENV === 'production';
+const baseUrl = isProduction ? process.env.BASE_URL : 'http://localhost:4000';
+
 // Google OAuth Strategy configuration
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_CLIENT_ID!,
   clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-  callbackURL: `http://localhost:4000/api/google/callback`,
+  callbackURL: `${baseUrl}/api/google/callback`,
 },
   async (accessToken: string, refreshToken: string, profile: any, done: (error: any, user?: any) => void) => {
     try {
