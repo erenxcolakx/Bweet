@@ -10,6 +10,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
 const passport_1 = __importDefault(require("./controllers/passport")); // Passport.js configuration
 const logger_1 = __importDefault(require("./config/logger")); // Import the logger
+const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({
     path: process.env.NODE_ENV === 'production'
         ? '.env.production'
@@ -19,6 +20,7 @@ const app = (0, express_1.default)();
 const PORT = process.env.PORT || 4000;
 // Static files
 app.use(express_1.default.static("public"));
+app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
 // Body parser middleware
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.json());
