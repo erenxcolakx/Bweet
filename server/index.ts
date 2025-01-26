@@ -21,12 +21,21 @@ app.use(express.static("public"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// CORS configuration
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:5000'],  // Frontend app URLs
-  methods: 'GET,POST,PUT,DELETE',  // Allowed HTTP methods
-  credentials: true                // Allow cookies and credentials
-}));
+// CORS options
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',  // Local development
+    'https://bweet-fe.vercel.app',  // Ana Vercel domain
+    'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app', // Git branch deployment
+    'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app',  // Preview deployment
+    /\.vercel\.app$/  // Diğer olası Vercel subdomain'leri için
+  ],
+  credentials: true,  // Cookie ve auth header'lar için gerekli
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
+app.use(cors(corsOptions));
 
 // Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
