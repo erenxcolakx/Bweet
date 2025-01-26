@@ -10,7 +10,11 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
 const passport_1 = __importDefault(require("./controllers/passport")); // Passport.js configuration
 const logger_1 = __importDefault(require("./config/logger")); // Import the logger
-dotenv_1.default.config();
+dotenv_1.default.config({
+    path: process.env.NODE_ENV === 'production'
+        ? '.env.production'
+        : '.env.development'
+});
 const app = (0, express_1.default)();
 const PORT = process.env.PORT || 4000;
 // Static files
@@ -18,12 +22,20 @@ app.use(express_1.default.static("public"));
 // Body parser middleware
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.json());
-// CORS configuration
-app.use((0, cors_1.default)({
-    origin: ['http://localhost:3000', 'http://localhost:5000'], // Frontend app URLs
-    methods: 'GET,POST,PUT,DELETE', // Allowed HTTP methods
-    credentials: true // Allow cookies and credentials
-}));
+// CORS options
+const corsOptions = {
+    origin: [
+        'http://localhost:3000', // Local development
+        'https://bweet-fe.vercel.app', // Ana Vercel domain
+        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app', // Git branch deployment
+        'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app', // Preview deployment
+        /\.vercel\.app$/ // Diğer olası Vercel subdomain'leri için
+    ],
+    credentials: true, // Cookie ve auth header'lar için gerekli
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use((0, cors_1.default)(corsOptions));
 // Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
     logger_1.default.error("SECRET_KEY environment variable is not defined");
