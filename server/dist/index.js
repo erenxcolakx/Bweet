@@ -27,10 +27,11 @@ app.use(express_1.default.json());
 // CORS options
 const corsOptions = {
     origin: [
-        'http://localhost:3000',
-        'https://bweet-fe.vercel.app',
-        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app',
-        'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app'
+        'http://localhost:3000', // Local development
+        'https://bweet-fe.vercel.app', // Ana Vercel domain
+        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app', // Git branch deployment
+        'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app', // Preview deployment
+        /\.vercel\.app$/ // Diğer olası Vercel subdomain'leri için
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -57,7 +58,7 @@ app.use((0, express_session_1.default)({
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/'
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
     }
 }));
 logger_1.default.info("Session middleware configured");
