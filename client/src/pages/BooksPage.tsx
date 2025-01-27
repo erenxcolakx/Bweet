@@ -7,6 +7,7 @@ import BookPost from '../components/BookPost';
 import ManualBookAddButton from '../components/ManualBookAddButton';
 import ManualBookModal from '../modals/ManualBookModal';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const BooksPage: React.FC = () => {
   interface Post {
@@ -25,6 +26,7 @@ const BooksPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);  // Modalın açık olup olmadığını takip edin
   const [error, setError] = useState<string | null>(null); // Hata mesajını takip edin
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
 
   // Butona tıklandığında modalı açar
   const handleManualAddClick = () => {
@@ -35,6 +37,12 @@ const BooksPage: React.FC = () => {
   const handleModalClose = () => {
     setIsModalOpen(false);
   };
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
@@ -89,14 +97,28 @@ const BooksPage: React.FC = () => {
 
   const handleSort = async (sortType: string) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/sort`, { sortType }, {
-        withCredentials: true
-      });
+      const response = await axios.post(
+        `${process.env.REACT_APP_SERVER_ADDRESS}/api/sort`,
+        { sortType },
+        {
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
       if (response.data.success) {
+        // Handle successful sort
         setPosts(response.data.posts);
+      } else {
+        console.error('Sort failed:', response.data.message);
       }
-    } catch (error) {
-      console.error('Failed to sort posts');
+    } catch (error: any) {
+      console.error('Sort error:', error.response?.data?.message || error.message);
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
     }
   };
 
@@ -135,6 +157,10 @@ const BooksPage: React.FC = () => {
       console.error('Failed to update post', error);
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div>

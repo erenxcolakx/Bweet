@@ -49,7 +49,7 @@ if (!process.env.SECRET_KEY) {
 
 // Session configuration
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.SECRET_KEY || 'your-secret-key',
   resave: true,
   saveUninitialized: false,
   rolling: true,
