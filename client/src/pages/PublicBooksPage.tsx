@@ -34,7 +34,7 @@ const PublicBooksPage: React.FC = () => {
       }
       try {
         const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/home`, {
-          withCredentials: true,
+            withCredentials: true,
         });
         if (response.data.success) {
           // Postları tarihe göre yeniden eskiye sıralama
@@ -48,7 +48,7 @@ const PublicBooksPage: React.FC = () => {
       }
     };
 
-    fetchPublicPosts();
+      fetchPublicPosts();
   }, [navigate, user]);
 
   return (
@@ -57,7 +57,7 @@ const PublicBooksPage: React.FC = () => {
       <FilterBookSearchBar/>
       {posts.map((post) => (
         <PublicPost key={post.id} post={post} />
-      ))}
+        ))}
     </div>
   );
 };

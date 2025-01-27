@@ -27,15 +27,15 @@ app.use(express_1.default.json());
 // CORS options
 const corsOptions = {
     origin: [
-        'http://localhost:3000', // Local development
-        'https://bweet-fe.vercel.app', // Ana Vercel domain
-        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app', // Git branch deployment
-        'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app', // Preview deployment
-        /\.vercel\.app$/ // Diğer olası Vercel subdomain'leri için
+        'http://localhost:3000',
+        'https://bweet-fe.vercel.app',
+        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app',
+        'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app'
     ],
-    credentials: true, // Cookie ve auth header'lar için gerekli
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['set-cookie']
 };
 app.use((0, cors_1.default)(corsOptions));
 // Check for SECRET_KEY
@@ -47,17 +47,17 @@ else {
     logger_1.default.info("SECRET_KEY is defined and ready");
 }
 // Session configuration
+app.set('trust proxy', 1); // trust first proxy
 app.use((0, express_session_1.default)({
     secret: process.env.SECRET_KEY || 'your-secret-key',
-    resave: true,
+    resave: false,
     saveUninitialized: false,
-    rolling: true,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
+        path: '/'
     }
 }));
 logger_1.default.info("Session middleware configured");

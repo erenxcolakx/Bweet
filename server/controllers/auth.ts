@@ -178,7 +178,8 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   
   if (user?.user_id) {
     logger.info(`User authenticated: ${user.email}`);
-    req.session.touch(); // Refresh the session
+    // Refresh the session
+    req.session.touch();
     return next();
   }
   

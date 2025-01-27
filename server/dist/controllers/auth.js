@@ -196,7 +196,8 @@ const isAuthenticated = (req, res, next) => {
     const user = req.session.user;
     if (user === null || user === void 0 ? void 0 : user.user_id) {
         logger_1.default.info(`User authenticated: ${user.email}`);
-        req.session.touch(); // Refresh the session
+        // Refresh the session
+        req.session.touch();
         return next();
     }
     logger_1.default.warn('Authentication failed: No valid user in session');
