@@ -6,6 +6,8 @@ import SortDropdown from '../components/SortDropdown';
 import BookPost from '../components/BookPost';
 import ManualBookAddButton from '../components/ManualBookAddButton';
 import ManualBookModal from '../modals/ManualBookModal';
+import { useNavigate } from 'react-router-dom';
+
 const BooksPage: React.FC = () => {
   interface Post {
     id: number;
@@ -22,6 +24,7 @@ const BooksPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);  // Modalın açık olup olmadığını takip edin
   const [error, setError] = useState<string | null>(null); // Hata mesajını takip edin
+  const navigate = useNavigate();
 
   // Butona tıklandığında modalı açar
   const handleManualAddClick = () => {
@@ -40,7 +43,6 @@ const BooksPage: React.FC = () => {
 
 
   const handleSubmit = async (bookData: { coverImage: File | null; title: string; author: string; rating: number; review: string; isPublic: boolean }) => {
-    // Zorunlu alanları kontrol ediyoruz (coverImage opsiyonel)
     const { coverImage, title, author, rating, review, isPublic } = bookData;
     if (!title || !author || !review) {
       setError("Please fill out all required fields (Title, Author, Review).");
@@ -49,7 +51,7 @@ const BooksPage: React.FC = () => {
 
     const formData = new FormData();
     if (coverImage) {
-      formData.append('coverImage', coverImage);  // Kapak resmi varsa ekliyoruz
+      formData.append('coverImage', coverImage);
     }
     formData.append('title', title);
     formData.append('author', author);
@@ -58,24 +60,30 @@ const BooksPage: React.FC = () => {
     formData.append('isPublic', String(isPublic));
 
     try {
-      // API'ye POST isteği gönderiyoruz
       const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        withCredentials: true, // Oturum bilgilerini iletir
+        withCredentials: true,
       });
 
       if (response.data.success) {
         console.log('Book added successfully');
-        setIsModalOpen(false); // Modalı kapat
+        setIsModalOpen(false);
+        // Refresh the books list after adding
+        handleSort('rto');
       } else {
         console.error('Error adding book:', response.data.message);
         setError(response.data.message);
       }
-    } catch (error) {
-      console.error('Error submitting the form:', error);
-      setError('Error submitting the form.');
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        // Session expired or invalid
+        navigate('/login');
+      } else {
+        console.error('Error submitting the form:', error);
+        setError('Error submitting the form.');
+      }
     }
   };
 
