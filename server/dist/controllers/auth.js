@@ -164,8 +164,9 @@ const handleLogout = (req, res, next) => {
 exports.handleLogout = handleLogout;
 // Handle account deletion
 const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const userId = req.session.user.user_id; // Get the user ID from the session
+        const userId = (_a = req.session.user) === null || _a === void 0 ? void 0 : _a.user_id;
         if (!userId) {
             logger_1.default.warn('Unauthorized account deletion attempt');
             return res.status(401).json({ success: false, message: 'Unauthorized' });
@@ -189,12 +190,13 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.deleteAccount = deleteAccount;
 const isAuthenticated = (req, res, next) => {
-    if (req.isAuthenticated() || req.session && req.session.user) {
-        logger_1.default.info(`User is authenticated: ${req.session}`);
+    var _a, _b;
+    if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.user_id) {
+        logger_1.default.info(`User authenticated: ${(_b = req.session.user) === null || _b === void 0 ? void 0 : _b.email}`);
         return next();
     }
-    logger_1.default.warn('Unauthorized access attempt');
-    res.status(401).json({ success: false, message: "You must be logged in to view this page" });
+    logger_1.default.warn('Authentication failed: No valid session');
+    res.status(401).json({ success: false, message: "Authentication required" });
 };
 exports.isAuthenticated = isAuthenticated;
 // Check Auth

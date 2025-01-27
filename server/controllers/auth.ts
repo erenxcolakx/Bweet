@@ -12,7 +12,7 @@ const saltRounds = 10;
 
 // Custom session interface
 interface CustomSession extends Session {
-  user: {
+  user?: {
     user_id: number;
     email: string;
     name: string;
@@ -137,7 +137,7 @@ export const handleLogout = (req: Request, res: Response, next: NextFunction) =>
 // Handle account deletion
 export const deleteAccount = async (req: Request, res: Response) => {
   try {
-    const userId = (req.session as CustomSession).user.user_id; // Get the user ID from the session
+    const userId = (req.session as CustomSession).user?.user_id;
 
     if (!userId) {
       logger.warn('Unauthorized account deletion attempt');
@@ -164,12 +164,13 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  if (req.isAuthenticated() || req.session && (req.session as CustomSession).user) {
-    logger.info(`User is authenticated: ${req.session}`);
+  if ((req.session as CustomSession).user?.user_id) {
+    logger.info(`User authenticated: ${(req.session as CustomSession).user?.email}`);
     return next();
   }
-  logger.warn('Unauthorized access attempt');
-  res.status(401).json({ success: false, message: "You must be logged in to view this page" });
+  
+  logger.warn('Authentication failed: No valid session');
+  res.status(401).json({ success: false, message: "Authentication required" });
 };
 
 
