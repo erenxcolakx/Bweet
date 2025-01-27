@@ -63,25 +63,29 @@ const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                             message: "Your email is not verified. A new verification email has been sent."
                         });
                     }
+                    // Set session data
                     req.session.user = {
                         user_id: user.user_id,
                         email: user.email,
                         name: user.name
                     };
-                    yield new Promise((resolve, reject) => {
-                        req.session.save((err) => {
-                            if (err) {
-                                logger_1.default.error(`Session save error for user ${user.email}: ${err.message}`);
-                                reject(err);
+                    // Save session explicitly
+                    req.session.save((err) => {
+                        if (err) {
+                            logger_1.default.error(`Session save error during login for user: ${email}`);
+                            return res.status(500).json({ success: false, message: "Session error" });
+                        }
+                        logger_1.default.info(`User ${user.email} logged in successfully`);
+                        return res.status(200).json({
+                            success: true,
+                            user: {
+                                user_id: user.user_id,
+                                email: user.email,
+                                name: user.name
                             }
-                            resolve();
                         });
                     });
-                    logger_1.default.info(`User ${user.email} logged in successfully`);
-                    return res.status(200).json({
-                        success: true,
-                        user: { user_id: user.user_id, email: user.email, name: user.name }
-                    });
+                    return;
                 }
             }
         }
@@ -148,17 +152,22 @@ const handleEmailVerification = (req, res, next) => __awaiter(void 0, void 0, vo
 });
 exports.handleEmailVerification = handleEmailVerification;
 // Handle logout
-const handleLogout = (req, res, next) => {
-    req.session.destroy((err) => {
-        if (err) {
-            logger_1.default.error(`Error destroying session: ${err}`);
-            res.status(500).json({ success: false, message: "Error destroying session" });
-        }
-        else {
+const handleLogout = (req, res) => {
+    if (req.session) {
+        req.session.destroy((err) => {
+            if (err) {
+                logger_1.default.error('Error destroying session:', err);
+                return res.status(500).json({ success: false, message: "Logout failed" });
+            }
+            res.clearCookie('connect.sid');
             logger_1.default.info('User logged out successfully');
             res.status(200).json({ success: true, message: "Logout successful" });
-        }
-    });
+        });
+    }
+    else {
+        logger_1.default.warn('No session to destroy during logout');
+        res.status(200).json({ success: true, message: "Already logged out" });
+    }
 };
 exports.handleLogout = handleLogout;
 // Handle account deletion
@@ -188,32 +197,34 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.deleteAccount = deleteAccount;
+// Check Auth middleware
 const isAuthenticated = (req, res, next) => {
     if (!req.session || !req.session.user) {
-        logger_1.default.warn('Authentication failed: Invalid session');
+        logger_1.default.warn('Authentication failed: No session or user');
         return res.status(401).json({ success: false, message: "Authentication required" });
     }
     const user = req.session.user;
     if (user === null || user === void 0 ? void 0 : user.user_id) {
         logger_1.default.info(`User authenticated: ${user.email}`);
-        // Refresh the session
+        // Touch the session to keep it alive
         req.session.touch();
         return next();
     }
-    logger_1.default.warn('Authentication failed: No valid user in session');
+    logger_1.default.warn('Authentication failed: Invalid user data');
     return res.status(401).json({ success: false, message: "Authentication required" });
 };
 exports.isAuthenticated = isAuthenticated;
-// Check Auth
+// Check Auth endpoint
 const checkAuth = (req, res) => {
     if (!req.session || !req.session.user) {
-        logger_1.default.warn('Check auth failed: No session or user');
+        logger_1.default.warn('Check auth failed: No session');
         return res.status(401).json({ success: false, message: "Not authenticated" });
     }
     const user = req.session.user;
     if (user === null || user === void 0 ? void 0 : user.user_id) {
         logger_1.default.info(`User is authenticated: ${user.email}`);
-        req.session.touch(); // Refresh the session
+        // Touch the session to keep it alive
+        req.session.touch();
         return res.status(200).json({ success: true, user });
     }
     logger_1.default.warn('Check auth failed: Invalid user data');

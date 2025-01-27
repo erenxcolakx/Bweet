@@ -6,6 +6,7 @@ import cors from 'cors';
 import passport from "./controllers/passport";  // Passport.js configuration
 import logger from './config/logger';  // Import the logger
 import path from 'path';
+import { checkSessionHealth } from './middlewares/sessionHealth';
 env.config({
   path: process.env.NODE_ENV === 'production'
     ? '.env.production'
@@ -64,6 +65,9 @@ app.use(session({
   }
 }));
 logger.info("Session middleware configured");
+
+// After session middleware
+app.use(checkSessionHealth);
 
 // Passport.js initialization
 app.use(passport.initialize());

@@ -42,27 +42,31 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
             });
           }
 
-          req.session.user = { 
-            user_id: user.user_id, 
-            email: user.email, 
-            name: user.name 
+          // Set session data
+          req.session.user = {
+            user_id: user.user_id,
+            email: user.email,
+            name: user.name
           };
-          
-          await new Promise<void>((resolve, reject) => {
-            req.session.save((err) => {
-              if (err) {
-                logger.error(`Session save error for user ${user.email}: ${err.message}`);
-                reject(err);
-              }
-              resolve();
+
+          // Save session explicitly
+          req.session.save((err) => {
+            if (err) {
+              logger.error(`Session save error during login for user: ${email}`);
+              return res.status(500).json({ success: false, message: "Session error" });
+            }
+
+            logger.info(`User ${user.email} logged in successfully`);
+            return res.status(200).json({ 
+              success: true, 
+              user: { 
+                user_id: user.user_id, 
+                email: user.email, 
+                name: user.name 
+              } 
             });
           });
-
-          logger.info(`User ${user.email} logged in successfully`);
-          return res.status(200).json({ 
-            success: true, 
-            user: { user_id: user.user_id, email: user.email, name: user.name } 
-          });
+          return;
         }
       }
     }
@@ -127,16 +131,22 @@ export const handleEmailVerification = async (req: Request, res: Response, next:
 };
 
 // Handle logout
-export const handleLogout = (req: Request, res: Response, next: NextFunction) => {
-  req.session.destroy((err: Error) => {
-    if (err) {
-      logger.error(`Error destroying session: ${err}`);
-      res.status(500).json({ success: false, message: "Error destroying session" });
-    } else {
+export const handleLogout = (req: Request, res: Response) => {
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        logger.error('Error destroying session:', err);
+        return res.status(500).json({ success: false, message: "Logout failed" });
+      }
+      
+      res.clearCookie('connect.sid');
       logger.info('User logged out successfully');
       res.status(200).json({ success: true, message: "Logout successful" });
-    }
-  });
+    });
+  } else {
+    logger.warn('No session to destroy during logout');
+    res.status(200).json({ success: true, message: "Already logged out" });
+  }
 };
 
 // Handle account deletion
@@ -167,10 +177,10 @@ export const deleteAccount = async (req: Request, res: Response) => {
   }
 };
 
-
+// Check Auth middleware
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session || !req.session.user) {
-    logger.warn('Authentication failed: Invalid session');
+    logger.warn('Authentication failed: No session or user');
     return res.status(401).json({ success: false, message: "Authentication required" });
   }
 
@@ -178,20 +188,19 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
   
   if (user?.user_id) {
     logger.info(`User authenticated: ${user.email}`);
-    // Refresh the session
+    // Touch the session to keep it alive
     req.session.touch();
     return next();
   }
   
-  logger.warn('Authentication failed: No valid user in session');
+  logger.warn('Authentication failed: Invalid user data');
   return res.status(401).json({ success: false, message: "Authentication required" });
 };
 
-
-// Check Auth
+// Check Auth endpoint
 export const checkAuth = (req: Request, res: Response) => {
   if (!req.session || !req.session.user) {
-    logger.warn('Check auth failed: No session or user');
+    logger.warn('Check auth failed: No session');
     return res.status(401).json({ success: false, message: "Not authenticated" });
   }
 
@@ -199,14 +208,14 @@ export const checkAuth = (req: Request, res: Response) => {
   
   if (user?.user_id) {
     logger.info(`User is authenticated: ${user.email}`);
-    req.session.touch(); // Refresh the session
+    // Touch the session to keep it alive
+    req.session.touch();
     return res.status(200).json({ success: true, user });
   }
 
   logger.warn('Check auth failed: Invalid user data');
   return res.status(401).json({ success: false, message: "Not authenticated" });
 };
-
 
 // Google OAuth yönlendirmesi
 export const googleLogin = passport.authenticate('google', { scope: ['profile', 'email'] });

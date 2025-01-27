@@ -11,6 +11,7 @@ const cors_1 = __importDefault(require("cors"));
 const passport_1 = __importDefault(require("./controllers/passport")); // Passport.js configuration
 const logger_1 = __importDefault(require("./config/logger")); // Import the logger
 const path_1 = __importDefault(require("path"));
+const sessionHealth_1 = require("./middlewares/sessionHealth");
 dotenv_1.default.config({
     path: process.env.NODE_ENV === 'production'
         ? '.env.production'
@@ -62,6 +63,8 @@ app.use((0, express_session_1.default)({
     }
 }));
 logger_1.default.info("Session middleware configured");
+// After session middleware
+app.use(sessionHealth_1.checkSessionHealth);
 // Passport.js initialization
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
