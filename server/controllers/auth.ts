@@ -49,26 +49,26 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
             name: user.name
           };
 
-          // Save session explicitly and wait for it
-          return new Promise<void>((resolve, reject) => {
+          // Save session explicitly
+          await new Promise<void>((resolve, reject) => {
             req.session.save((err) => {
               if (err) {
                 logger.error(`Session save error during login for user: ${email}: ${err}`);
                 reject(err);
-                return;
+              } else {
+                resolve();
               }
-
-              logger.info(`User ${user.email} logged in successfully`);
-              res.status(200).json({ 
-                success: true, 
-                user: { 
-                  user_id: user.user_id, 
-                  email: user.email, 
-                  name: user.name 
-                } 
-              });
-              resolve();
             });
+          });
+
+          logger.info(`User ${user.email} logged in successfully`);
+          return res.status(200).json({ 
+            success: true, 
+            user: { 
+              user_id: user.user_id, 
+              email: user.email, 
+              name: user.name 
+            } 
           });
         }
       }
