@@ -80,31 +80,35 @@ const MyProfilePage: React.FC = () => {
   return (
     <>
       <Header/>
-      <div className="profile-page container mt-5">
-        <h1 className="josefin-sans-1">Profile Page</h1>
-        <div className="profile-details mt-4">
+      <div className="profile-page container mt-5 d-flex flex-column align-items-center align-items-md-start">
+        <h1 className="josefin-sans-1 text-center text-md-start">Profile Page</h1>
+        <div className="profile-details mt-4 text-center text-md-start">
           <p><strong>Email:</strong> {profileData.email}</p>
           <p><strong>Name:</strong> {profileData.name}</p>
         </div>
-        {isEditing ? (
-          <form onSubmit={handleSubmit} className="edit-form mt-4">
-            <div className="form-group">
-              <label htmlFor="name">Name:</label>
-              <input
-                id="name"
-                type="text"
-                className="form-control"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <button type="submit" className="btn btn-warning mt-2">Save Changes</button>
-          </form>
-        ) : (
-          <button onClick={handleEditToggle} className="btn btn-dark mt-3">Edit Profile</button>
-        )}
-        {/* Delete Account Button */}
-        <button onClick={handleDeleteAccount} className="btn btn-danger mt-3">Delete Account</button>
+        <div className="profile-actions gap-2 d-flex justify-content-center justify-content-md-start">
+          {isEditing ? (
+            <form onSubmit={handleSubmit} className="edit-form mt-4 text-center text-md-start">
+              <div className="form-group">
+                <label htmlFor="name">Name:</label>
+                <input
+                  id="name"
+                  type="text"
+                  className="form-control"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="btn btn-warning mt-2">Save Changes</button>
+            </form>
+          ) : (
+            <button onClick={handleEditToggle} className="btn btn-dark mt-3">Edit Profile</button>
+          )}
+        </div>
+        <div className="profile-actions gap-2 d-flex justify-content-center justify-content-md-start">
+            {/* Delete Account Button */}
+            <button onClick={handleDeleteAccount} className="btn btn-danger mt-3">Delete Account</button>
+        </div>
       </div>
     </>
   );

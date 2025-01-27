@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom'; // useLocation'u ekledik
 import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu içe aktarıyoruz
 import axios from 'axios';
@@ -7,6 +7,29 @@ const Header: React.FC = () => {
   const { user, setUser } = useAuth();  // user bilgisini ve setUser fonksiyonunu global state'den alıyoruz
   const navigate = useNavigate();
   const location = useLocation(); // Mevcut adresi almak için kullanıyoruz
+
+  useEffect(() => {
+    // Session kontrolü
+    const checkAuth = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
+          withCredentials: true
+        });
+        
+        if (!response.data.success) {
+          setUser(null);
+          navigate('/login');
+        }
+      } catch (error) {
+        setUser(null);
+        navigate('/login');
+      }
+    };
+
+    if (!user) {
+      checkAuth();
+    }
+  }, [user, setUser, navigate]);
 
   // user nesnesinin email ve userId bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz
