@@ -60,12 +60,6 @@ const SearchBar: React.FC = () => {
 
   const handleModalSubmit = async (rating: number, review: string, isPublic: boolean) => {
     try {
-      if (!user) {
-        console.error('User not authenticated');
-        navigate('/login');
-        return;
-      }
-
       const response = await axios.post(
         `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`,
         {
@@ -75,7 +69,7 @@ const SearchBar: React.FC = () => {
           rating,
           review,
           isPublic,
-          user_id: user.user_id,
+          user_id: user?.user_id,
         },
         {
           withCredentials: true,
