@@ -89,6 +89,10 @@ const getBookPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* (
 });
 exports.getBookPosts = getBookPosts;
 const addPost = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.session || !req.session.user) {
+        logger_1.default.warn('Unauthorized attempt to add post: No session');
+        return res.status(401).json({ success: false, message: "Authentication required" });
+    }
     const { title, author, review, isPublic, coverId } = req.body;
     const rating = parseFloat(req.body.rating);
     const time = new Date();

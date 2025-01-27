@@ -65,13 +65,16 @@ export const getBookPosts = async (req: Request, res: Response) => {
   }
 };
 
-
-
 export const addPost = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session || !req.session.user) {
+    logger.warn('Unauthorized attempt to add post: No session');
+    return res.status(401).json({ success: false, message: "Authentication required" });
+  }
+
   const { title, author, review, isPublic, coverId } = req.body;
   const rating = parseFloat(req.body.rating);
   const time = new Date();
-  const userId = (req.session as CustomSession).user.user_id;
+  const userId = req.session.user.user_id;
 
   const coverImage = req.file;
 
