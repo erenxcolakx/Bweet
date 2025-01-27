@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
 
 interface User {
-  user_id: number;  // Matches server-side type
+  user_id: string | number;
   email: string;
   name: string;
 }
@@ -27,10 +27,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           { withCredentials: true }
         );
         
-        if (response.data.success) {
+        if (response.data.success && response.data.user) {
           setUser(response.data.user);
-        } else {
-          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -41,14 +39,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     checkAuthStatus();
+
+    // Polling for session status every 5 minutes
+    const intervalId = setInterval(checkAuthStatus, 5 * 60 * 1000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>; // or a loading spinner
-  }
+  const value = {
+    user,
+    setUser,
+    loading
+  };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, loading }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
