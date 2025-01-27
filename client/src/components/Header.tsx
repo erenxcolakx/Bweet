@@ -41,7 +41,7 @@ const Header: React.FC = () => {
     }
   }, [user, setUser, navigate, location.pathname]);
 
-  // user nesnesinin email ve userId bilgilerini alıyoruz
+  // user nesnesinin email ve user_id bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz
   const userName = user?.name || "User"; 
 

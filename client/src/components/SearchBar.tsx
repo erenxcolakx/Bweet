@@ -56,7 +56,7 @@ const SearchBar: React.FC = () => {
           rating,
           review,
           isPublic,
-          userId: user?.userId, // AuthContext'ten gelen kullanıcı ID'sini ekliyoruz
+          user_id: user?.user_id, // Changed from userId to user_id
         },
         {
           withCredentials: true, // Session cookie'lerinin gönderilmesi için

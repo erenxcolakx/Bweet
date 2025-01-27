@@ -1,69 +1,32 @@
-import axios from 'axios';
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
-// User arayüzü
 interface User {
+  user_id: number;  // Matches server-side type
   email: string;
-  userId: number;
   name: string;
 }
 
-// AuthContext'in sunduğu fonksiyonlar ve user bilgisi
-interface AuthContextProps {
+interface AuthContextType {
   user: User | null;
-  setUser: (user: User | null) => void;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
-// Context oluşturma
-const AuthContext = createContext<AuthContextProps | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// AuthContext'i kullanmak için hook
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-// AuthProvider bileşeni, tüm uygulama içinde AuthContext'i sağlar
-
-// AuthProvider bileşeni, tüm uygulama içinde AuthContext'i sağlar
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-
-  // İlk render sırasında ve her sayfa yenilendiğinde backend'e istek yapacak
-  useEffect(() => {
-    const syncWithBackend = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
-          withCredentials: true, // Session çerezlerini backend'e gönder
-        });
-
-        if (response.data.success) {
-          setUser(response.data.user); // Backend'den dönen oturum bilgisini frontend'e senkronize et
-          localStorage.setItem('user', JSON.stringify(response.data.user));
-        } else {
-          localStorage.removeItem('user'); // Oturum kapalıysa localStorage'dan temizle
-          setUser(null);
-        }
-      } catch (error) {
-        console.error('Authentication check failed:', error);
-        localStorage.removeItem('user'); // Hata durumunda localStorage'dan kullanıcıyı temizle
-        setUser(null);
-      }
-    };
-
-    // Sayfa her yenilendiğinde backend'e istek yap
-    syncWithBackend();
-  }, []); // Boş bağımlılık dizisi ile sadece bir kez çalışacak
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
 
   return (
     <AuthContext.Provider value={{ user, setUser }}>
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };

@@ -16,7 +16,7 @@ const GoogleAuthCallback = () => {
         if (data.success) {
           // Kullanıcı bilgilerini auth context'e kaydet
           setUser({
-            userId: data.user.user_id,
+            user_id: data.user.user_id,
             email: data.user.email,
             name: data.user.name,
           });
