@@ -41,26 +41,28 @@ const UserPage: React.FC = () => {
   
 
   useEffect(() => {
-    if (!user) {
-      navigate('/login'); // Eğer kullanıcı giriş yapmamışsa login sayfasına yönlendir
-      return;
-    }
-
-    const fetchUserProfile = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/user/${id}`, {
-          withCredentials: true,
-        });
-        setTargetUser(response.data.user); // Backend'den gelen "user" verisi kullanılıyor
-        setLoading(false);
-      } catch (error) {
-        setError('User not found');
-        setLoading(false);
+    if (!loading) {
+      if (!user) {
+        navigate('/login');
+        return;
       }
-    };
 
-    fetchUserProfile();
-  }, [id, user, navigate]);
+      const fetchUserProfile = async () => {
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/user/${id}`, {
+            withCredentials: true,
+          });
+          setTargetUser(response.data.user);
+          setLoading(false);
+        } catch (error) {
+          setError('User not found');
+          setLoading(false);
+        }
+      };
+
+      fetchUserProfile();
+    }
+  }, [id, user, loading, navigate]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;

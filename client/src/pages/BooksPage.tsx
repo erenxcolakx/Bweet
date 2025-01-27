@@ -39,16 +39,15 @@ const BooksPage: React.FC = () => {
   };
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/login');
+    if (!loading) {  // Sadece loading false olduğunda kontrol et
+      if (!user) {
+        navigate('/login');
+      } else {
+        // Sayfa yüklendiğinde varsayılan sıralama
+        handleSort('rto');
+      }
     }
   }, [user, loading, navigate]);
-
-  useEffect(() => {
-    // Sayfa yüklendiğinde varsayılan sıralama olarak "Recent to Oldest" uygula
-    handleSort('rto');
-  }, []);
-
 
   const handleSubmit = async (bookData: { coverImage: File | null; title: string; author: string; rating: number; review: string; isPublic: boolean }) => {
     const { coverImage, title, author, rating, review, isPublic } = bookData;

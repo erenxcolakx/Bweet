@@ -22,34 +22,36 @@ interface Post {
 
 const PublicBooksPage: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   // Public postları API'den al
   useEffect(() => {
     const fetchPublicPosts = async () => {
-      if (!user) {
-        navigate('/login'); // Redirect to login if user is not authenticated
-        return;
-      }
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/home`, {
-            withCredentials: true,
-        });
-        if (response.data.success) {
-          // Postları tarihe göre yeniden eskiye sıralama
-          const sortedPosts = response.data.posts.sort((a: Post, b: Post) => {
-            return new Date(b.time).getTime() - new Date(a.time).getTime();
-          });
-          setPosts(sortedPosts);
+      if (!loading) {
+        if (!user) {
+          navigate('/login');
+          return;
         }
-      } catch (error) {
-        console.error('Failed to fetch public posts:', error);
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/home`, {
+            withCredentials: true,
+          });
+          if (response.data.success) {
+            // Postları tarihe göre yeniden eskiye sıralama
+            const sortedPosts = response.data.posts.sort((a: Post, b: Post) => {
+              return new Date(b.time).getTime() - new Date(a.time).getTime();
+            });
+            setPosts(sortedPosts);
+          }
+        } catch (error) {
+          console.error('Failed to fetch public posts:', error);
+        }
       }
     };
 
-      fetchPublicPosts();
-  }, [navigate, user]);
+    fetchPublicPosts();
+  }, [loading, user, navigate]);
 
   return (
     <div>

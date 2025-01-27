@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
+import { useAuth } from '../contexts/AuthContext';
 
 interface Book {
   cover_id: number | null;
@@ -14,6 +15,7 @@ interface Book {
 const BookPosts: React.FC = () => {
   const navigate = useNavigate();
   const { title, author } = useParams<{ title: string; author: string }>(); // URL parametresinden title ve author bilgilerini alıyoruz
+  const { user, loading: authLoading } = useAuth();
   interface Post {
     id: number;
     user_id: number;
@@ -28,29 +30,36 @@ const BookPosts: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true); // Yükleme durumunu tutmak için
 
   useEffect(() => {
-    if (!title || !author) {
-      console.error('Title or Author is missing');
-      setLoading(false); // Hata durumunda yükleme tamamlandı olarak ayarla
-      return;
-    }
-
-    const fetchBookPosts = async () => {
-      try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_SERVER_ADDRESS}/api/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`, 
-          { withCredentials: true }
-        );
-        setBook(response.data.book);
-        setPosts(response.data.posts);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching book comments:', error);
-        setLoading(false);
+    if (!authLoading) {
+      if (!user) {
+        navigate('/login');
+        return;
       }
-    };
+      
+      if (!title || !author) {
+        console.error('Title or Author is missing');
+        setLoading(false);
+        return;
+      }
 
-    fetchBookPosts();
-  }, [title, author]);
+      const fetchBookPosts = async () => {
+        try {
+          const response = await axios.get(
+            `${process.env.REACT_APP_SERVER_ADDRESS}/api/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`,
+            { withCredentials: true }
+          );
+          setBook(response.data.book);
+          setPosts(response.data.posts);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error fetching book comments:', error);
+          setLoading(false);
+        }
+      };
+
+      fetchBookPosts();
+    }
+  }, [title, author, user, authLoading, navigate]);
 
   if (loading) {
     return <div>Loading...</div>;
