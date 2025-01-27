@@ -20,18 +20,26 @@ const LoginForm: React.FC<LoginFormProps> = ({ error }) => {
         username: email,
         password: password
       }, {
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
+
       console.log("Login Response: ", response);
+
       if (response.data.success) {
         setUser(response.data.user);
-        navigate('/books');
+        // Add a small delay before navigation
+        setTimeout(() => {
+          navigate('/books');
+        }, 100);
       } else {
         navigate('/login', { state: { error: response.data.message } });
       }
     } catch (error: any) {
-      console.error('There was an error!', error);
-      navigate('/login', { state: { error: error.response.data.message } });
+      console.error('Login error:', error);
+      navigate('/login', { state: { error: error.response?.data?.message || 'Login failed' } });
     }
   };
 

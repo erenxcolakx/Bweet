@@ -53,14 +53,14 @@ if (!process.env.SECRET_KEY) {
 // Session configuration - Production için güvenli ayarlar
 app.use(session({
   secret: process.env.SECRET_KEY || 'your-secret-key',
-  resave: false,
+  resave: true,
   saveUninitialized: false,
   name: 'sessionId',
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'none', // Always set to 'none' for cross-origin
+    sameSite: 'none',
     path: '/',
     partitioned: true // Add partitioned attribute for Chrome's new requirements
   },
