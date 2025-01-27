@@ -40,7 +40,7 @@ const corsOptions = {
     preflightContinue: true
 };
 app.use((0, cors_1.default)(corsOptions));
-app.set('trust proxy', 1); // Important for secure cookies behind a proxy
+app.enable('trust proxy'); // Important for secure cookies behind a proxy
 // Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
     logger_1.default.error("SECRET_KEY environment variable is not defined");
@@ -59,10 +59,11 @@ app.use((0, express_session_1.default)({
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        path: '/'
+        sameSite: 'none', // Always set to 'none' for cross-origin
+        path: '/',
+        partitioned: true // Add partitioned attribute for Chrome's new requirements
     },
-    proxy: true // Important for Vercel
+    proxy: true
 }));
 logger_1.default.info("Session middleware configured");
 // Session health check middleware

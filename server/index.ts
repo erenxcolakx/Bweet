@@ -40,7 +40,7 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.set('trust proxy', 1); // Important for secure cookies behind a proxy
+app.enable('trust proxy'); // Important for secure cookies behind a proxy
 
 // Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
@@ -60,10 +60,11 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    path: '/'
+    sameSite: 'none', // Always set to 'none' for cross-origin
+    path: '/',
+    partitioned: true // Add partitioned attribute for Chrome's new requirements
   },
-  proxy: true // Important for Vercel
+  proxy: true
 }));
 logger.info("Session middleware configured");
 
