@@ -58,40 +58,39 @@ const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     if (!user.is_verified) {
                         const token = (0, mailModel_js_1.generateVerificationToken)(user.user_id);
                         (0, mailModel_js_1.sendVerificationEmail)(user.email, token);
-                        logger_1.default.info(`Login attempt for unverified user: ${user.email}`);
                         return res.status(403).json({
                             success: false,
                             message: "Your email is not verified. A new verification email has been sent."
                         });
                     }
-                    req.session.user = { user_id: user.user_id, email: user.email, name: user.name };
-                    req.session.save((err) => {
-                        if (err) {
-                            logger_1.default.error(`Session save error for user ${user.email}: ${err.message}`);
-                            return res.status(500).json({ success: false, message: "Session save error" });
-                        }
-                        logger_1.default.info(`User ${user.email} logged in successfully`);
-                        res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id, name: user.name } });
+                    req.session.user = {
+                        user_id: user.user_id,
+                        email: user.email,
+                        name: user.name
+                    };
+                    yield new Promise((resolve, reject) => {
+                        req.session.save((err) => {
+                            if (err) {
+                                logger_1.default.error(`Session save error for user ${user.email}: ${err.message}`);
+                                reject(err);
+                            }
+                            resolve();
+                        });
+                    });
+                    logger_1.default.info(`User ${user.email} logged in successfully`);
+                    return res.status(200).json({
+                        success: true,
+                        user: { user_id: user.user_id, email: user.email, name: user.name }
                     });
                 }
-                else {
-                    logger_1.default.warn(`Incorrect password attempt for user: ${user.email}`);
-                    res.status(500).json({ success: false, message: "Incorrect password" });
-                }
-            }
-            else {
-                logger_1.default.warn(`Password not found for user: ${user.email}`);
-                res.status(401).json({ success: false, message: "Incorrect password" });
             }
         }
-        else {
-            logger_1.default.warn(`User not found with email: ${email}`);
-            res.status(404).json({ success: false, message: "User not found. You can create new account" });
-        }
+        logger_1.default.warn(`Failed login attempt for email: ${email}`);
+        return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
-    catch (err) {
-        logger_1.default.error(`Login error for email ${email}: ${err}`);
-        res.status(500).json({ success: false, message: "Internal server error" });
+    catch (error) {
+        logger_1.default.error(`Login error for email ${email}: ${error}`);
+        return res.status(500).json({ success: false, message: "Server error" });
     }
 });
 exports.handleLogin = handleLogin;
@@ -190,27 +189,32 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.deleteAccount = deleteAccount;
 const isAuthenticated = (req, res, next) => {
-    var _a, _b;
-    if ((_a = req.session.user) === null || _a === void 0 ? void 0 : _a.user_id) {
-        logger_1.default.info(`User authenticated: ${(_b = req.session.user) === null || _b === void 0 ? void 0 : _b.email}`);
+    if (!req.session) {
+        logger_1.default.error('No session exists');
+        return res.status(401).json({ success: false, message: "No session" });
+    }
+    const user = req.session.user;
+    if (user === null || user === void 0 ? void 0 : user.user_id) {
+        logger_1.default.info(`User authenticated: ${user.email}`);
         return next();
     }
-    logger_1.default.warn('Authentication failed: No valid session');
-    res.status(401).json({ success: false, message: "Authentication required" });
+    logger_1.default.warn('Authentication failed: Invalid session');
+    return res.status(401).json({ success: false, message: "Authentication required" });
 };
 exports.isAuthenticated = isAuthenticated;
 // Check Auth
 const checkAuth = (req, res) => {
-    var _a;
-    const user = (_a = req.session) === null || _a === void 0 ? void 0 : _a.user;
+    const user = req.session.user;
+    if (!req.session) {
+        logger_1.default.error('No session exists');
+        return res.status(401).json({ success: false, message: "No session" });
+    }
     if (user && user.user_id) {
         logger_1.default.info(`User is authenticated: ${user.email}`);
-        res.status(200).json({ success: true, user });
+        return res.status(200).json({ success: true, user });
     }
-    else {
-        logger_1.default.warn('Check auth failed. User not authenticated');
-        res.status(401).json({ success: false, message: "Not authenticated" });
-    }
+    logger_1.default.warn('Check auth failed. User not authenticated');
+    return res.status(401).json({ success: false, message: "Not authenticated" });
 };
 exports.checkAuth = checkAuth;
 // Google OAuth yönlendirmesi

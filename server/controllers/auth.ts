@@ -8,17 +8,17 @@ import { Session } from 'express-session';
 import passport from "passport";
 import logger from '../config/logger';
 
-const saltRounds = 10;
-
-// Custom session interface
-interface CustomSession extends Session {
-  user?: {
-    user_id: number;
-    email: string;
-    name: string;
-  };
+declare module 'express-session' {
+  interface SessionData {
+    user: {
+      user_id: number;
+      email: string;
+      name: string;
+    };
+  }
 }
 
+const saltRounds = 10;
 
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
   const email = req.body.username;
@@ -36,38 +36,43 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
           if (!user.is_verified) {
             const token = generateVerificationToken(user.user_id);
             sendVerificationEmail(user.email, token);
-
-            logger.info(`Login attempt for unverified user: ${user.email}`);
             return res.status(403).json({
               success: false,
               message: "Your email is not verified. A new verification email has been sent."
             });
           }
 
-          (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name };
-          req.session.save((err) => {
-            if (err) {
-              logger.error(`Session save error for user ${user.email}: ${err.message}`);
-              return res.status(500).json({ success: false, message: "Session save error" });
-            }
-            logger.info(`User ${user.email} logged in successfully`);
-            res.status(200).json({ success: true, message: "Login successful", user: { email: user.email, user_id: user.user_id, name: user.name } });
+          req.session.user = { 
+            user_id: user.user_id, 
+            email: user.email, 
+            name: user.name 
+          };
+          
+          await new Promise<void>((resolve, reject) => {
+            req.session.save((err) => {
+              if (err) {
+                logger.error(`Session save error for user ${user.email}: ${err.message}`);
+                reject(err);
+              }
+              resolve();
+            });
           });
-        } else {
-          logger.warn(`Incorrect password attempt for user: ${user.email}`);
-          res.status(500).json({ success: false, message: "Incorrect password" });
+
+          logger.info(`User ${user.email} logged in successfully`);
+          return res.status(200).json({ 
+            success: true, 
+            user: { user_id: user.user_id, email: user.email, name: user.name } 
+          });
         }
-      } else {
-        logger.warn(`Password not found for user: ${user.email}`);
-        res.status(401).json({ success: false, message: "Incorrect password" });
       }
-    } else {
-      logger.warn(`User not found with email: ${email}`);
-      res.status(404).json({ success: false, message: "User not found. You can create new account" });
     }
-  } catch (err) {
-    logger.error(`Login error for email ${email}: ${err}`);
-    res.status(500).json({ success: false, message: "Internal server error" });
+    
+    logger.warn(`Failed login attempt for email: ${email}`);
+    return res.status(401).json({ success: false, message: "Invalid credentials" });
+    
+  } catch (error) {
+    logger.error(`Login error for email ${email}: ${error}`);
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -137,7 +142,7 @@ export const handleLogout = (req: Request, res: Response, next: NextFunction) =>
 // Handle account deletion
 export const deleteAccount = async (req: Request, res: Response) => {
   try {
-    const userId = (req.session as CustomSession).user?.user_id;
+    const userId = req.session.user?.user_id;
 
     if (!userId) {
       logger.warn('Unauthorized account deletion attempt');
@@ -169,7 +174,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
     return res.status(401).json({ success: false, message: "No session" });
   }
 
-  const user = (req.session as CustomSession)?.user;
+  const user = req.session.user;
   
   if (user?.user_id) {
     logger.info(`User authenticated: ${user.email}`);
@@ -183,7 +188,7 @@ export const isAuthenticated = (req: Request, res: Response, next: NextFunction)
 
 // Check Auth
 export const checkAuth = (req: Request, res: Response) => {
-  const user = (req.session as CustomSession)?.user;
+  const user = req.session.user;
   
   if (!req.session) {
     logger.error('No session exists');
@@ -210,7 +215,7 @@ export const googleCallback = (req: Request, res: Response) => {
     return res.status(401).json({ success: false, message: "Authentication failed" });
   }
   const user = req.user as { user_id: number; email: string; name: string };
-  (req.session as CustomSession).user = { user_id: user.user_id, email: user.email, name: user.name };
+  req.session.user = { user_id: user.user_id, email: user.email, name: user.name };
   req.session.save((err) => {
     if (err) {
       logger.error(`Session save error after Google login for user: ${user.email}`);

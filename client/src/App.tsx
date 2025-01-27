@@ -37,16 +37,19 @@ const App: React.FC = () => {
     <AuthProvider>
       <Router>
         <Routes>
+          {/* Public routes */}
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/google/callback" element={<GoogleAuthCallback />} />
+
+          {/* Protected routes */}
           <Route path='/books' element={<ProtectedRoute element={<BooksPage />} />} />
           <Route path="/books/:title/:author" element={<ProtectedRoute element={<BookPostsPage />} />} />
           <Route path='/myprofile' element={<ProtectedRoute element={<MyProfilePage />} />} />
           <Route path='/home' element={<ProtectedRoute element={<PublicBooksPage />} />} />
           <Route path="/user/:id" element={<ProtectedRoute element={<UserPage />} />} />
-          <Route path="/google/callback" element={<GoogleAuthCallback />} />
         </Routes>
       </Router>
     </AuthProvider>

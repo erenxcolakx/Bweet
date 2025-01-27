@@ -9,27 +9,37 @@ const Header: React.FC = () => {
   const location = useLocation(); // Mevcut adresi almak için kullanıyoruz
 
   useEffect(() => {
-    // Session kontrolü
     const checkAuth = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
           withCredentials: true
         });
-        
         if (!response.data.success) {
           setUser(null);
-          navigate('/login');
+          // Only redirect if we're on a protected route
+          if (location.pathname !== '/' &&
+              location.pathname !== '/login' &&
+              location.pathname !== '/register' &&
+              location.pathname !== '/verify-email') {
+            navigate('/login');
+          }
         }
       } catch (error) {
         setUser(null);
-        navigate('/login');
+        // Only redirect if we're on a protected route
+        if (location.pathname !== '/' &&
+            location.pathname !== '/login' &&
+            location.pathname !== '/register' &&
+            location.pathname !== '/verify-email') {
+          navigate('/login');
+        }
       }
     };
 
     if (!user) {
       checkAuth();
     }
-  }, [user, setUser, navigate]);
+  }, [user, setUser, navigate, location.pathname]);
 
   // user nesnesinin email ve userId bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz

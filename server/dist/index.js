@@ -48,14 +48,13 @@ else {
 }
 // Session configuration
 app.use((0, express_session_1.default)({
-    secret: process.env.SECRET_KEY,
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
 logger_1.default.info("Session middleware configured");
