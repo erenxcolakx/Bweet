@@ -164,26 +164,39 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  if ((req.session as CustomSession).user?.user_id) {
-    logger.info(`User authenticated: ${(req.session as CustomSession).user?.email}`);
+  if (!req.session) {
+    logger.error('No session exists');
+    return res.status(401).json({ success: false, message: "No session" });
+  }
+
+  const user = (req.session as CustomSession)?.user;
+  
+  if (user?.user_id) {
+    logger.info(`User authenticated: ${user.email}`);
     return next();
   }
   
-  logger.warn('Authentication failed: No valid session');
-  res.status(401).json({ success: false, message: "Authentication required" });
+  logger.warn('Authentication failed: Invalid session');
+  return res.status(401).json({ success: false, message: "Authentication required" });
 };
 
 
 // Check Auth
 export const checkAuth = (req: Request, res: Response) => {
   const user = (req.session as CustomSession)?.user;
+  
+  if (!req.session) {
+    logger.error('No session exists');
+    return res.status(401).json({ success: false, message: "No session" });
+  }
+
   if (user && user.user_id) {
     logger.info(`User is authenticated: ${user.email}`);
-    res.status(200).json({ success: true, user });
-  } else {
-    logger.warn('Check auth failed. User not authenticated');
-    res.status(401).json({ success: false, message: "Not authenticated" });
+    return res.status(200).json({ success: true, user });
   }
+
+  logger.warn('Check auth failed. User not authenticated');
+  return res.status(401).json({ success: false, message: "Not authenticated" });
 };
 
 
