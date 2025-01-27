@@ -25,21 +25,22 @@ app.use(express_1.default.static(path_1.default.join(__dirname, 'public')));
 // Body parser middleware
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.json());
-// CORS options
+// CORS configuration - ÖNEMLİ: credentials'ı doğru yapılandırmalıyız
 const corsOptions = {
     origin: [
-        'http://localhost:3000', // Local development
-        'https://bweet-fe.vercel.app', // Ana Vercel domain
-        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app', // Git branch deployment
-        'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app', // Preview deployment
-        /\.vercel\.app$/ // Diğer olası Vercel subdomain'leri için
+        'http://localhost:3000',
+        'https://bweet-fe.vercel.app',
+        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app',
+        'https://bweet.vercel.app'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['set-cookie']
+    exposedHeaders: ['set-cookie'],
+    preflightContinue: true
 };
 app.use((0, cors_1.default)(corsOptions));
+app.set('trust proxy', 1); // Important for secure cookies behind a proxy
 // Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
     logger_1.default.error("SECRET_KEY environment variable is not defined");
@@ -48,27 +49,39 @@ if (!process.env.SECRET_KEY) {
 else {
     logger_1.default.info("SECRET_KEY is defined and ready");
 }
-// Session configuration
-app.set('trust proxy', 1); // trust first proxy
+// Session configuration - Production için güvenli ayarlar
 app.use((0, express_session_1.default)({
     secret: process.env.SECRET_KEY || 'your-secret-key',
     resave: false,
     saveUninitialized: false,
+    name: 'sessionId',
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        maxAge: 24 * 60 * 60 * 1000,
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
-    }
+        path: '/'
+    },
+    proxy: true // Important for Vercel
 }));
 logger_1.default.info("Session middleware configured");
-// After session middleware
+// Session health check middleware
 app.use(sessionHealth_1.checkSessionHealth);
-// Passport.js initialization
+// Initialize passport after session
 app.use(passport_1.default.initialize());
 app.use(passport_1.default.session());
 logger_1.default.info("Passport.js initialized");
+// Debug middleware - Session durumunu loglayalım
+app.use((req, res, next) => {
+    var _a;
+    logger_1.default.debug('Session Debug:', {
+        sessionID: req.sessionID,
+        hasSession: !!req.session,
+        user: (_a = req.session) === null || _a === void 0 ? void 0 : _a.user,
+        cookies: req.cookies
+    });
+    next();
+});
 // Router middleware
 app.use(routes_1.default);
 logger_1.default.info("Routes are set up");
@@ -76,3 +89,4 @@ logger_1.default.info("Routes are set up");
 app.listen(PORT, () => {
     logger_1.default.info(`Server is running on port ${PORT}`);
 });
+exports.default = app;

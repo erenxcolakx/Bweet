@@ -24,22 +24,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// CORS options
+// CORS configuration - ÖNEMLİ: credentials'ı doğru yapılandırmalıyız
 const corsOptions = {
   origin: [
-    'http://localhost:3000',  // Local development
-    'https://bweet-fe.vercel.app',  // Ana Vercel domain
-    'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app', // Git branch deployment
-    'https://bweet-grtag86bw-erenxcolakxs-projects.vercel.app',  // Preview deployment
-    /\.vercel\.app$/  // Diğer olası Vercel subdomain'leri için
+    'http://localhost:3000',
+    'https://bweet-fe.vercel.app',
+    'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app',
+    'https://bweet.vercel.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['set-cookie']
+  exposedHeaders: ['set-cookie'],
+  preflightContinue: true
 };
 
 app.use(cors(corsOptions));
+app.set('trust proxy', 1); // Important for secure cookies behind a proxy
 
 // Check for SECRET_KEY
 if (!process.env.SECRET_KEY) {
@@ -49,30 +50,41 @@ if (!process.env.SECRET_KEY) {
   logger.info("SECRET_KEY is defined and ready");
 }
 
-// Session configuration
-app.set('trust proxy', 1); // trust first proxy
-
+// Session configuration - Production için güvenli ayarlar
 app.use(session({
   secret: process.env.SECRET_KEY || 'your-secret-key',
   resave: false,
   saveUninitialized: false,
+  name: 'sessionId',
   cookie: {
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    maxAge: 24 * 60 * 60 * 1000,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : undefined
-  }
+    path: '/'
+  },
+  proxy: true // Important for Vercel
 }));
 logger.info("Session middleware configured");
 
-// After session middleware
+// Session health check middleware
 app.use(checkSessionHealth);
 
-// Passport.js initialization
+// Initialize passport after session
 app.use(passport.initialize());
 app.use(passport.session());
 logger.info("Passport.js initialized");
+
+// Debug middleware - Session durumunu loglayalım
+app.use((req, res, next) => {
+  logger.debug('Session Debug:', {
+    sessionID: req.sessionID,
+    hasSession: !!req.session,
+    user: req.session?.user,
+    cookies: req.cookies
+  });
+  next();
+});
 
 // Router middleware
 app.use(router);
@@ -82,3 +94,5 @@ logger.info("Routes are set up");
 app.listen(PORT, () => {
   logger.info(`Server is running on port ${PORT}`);
 });
+
+export default app;
