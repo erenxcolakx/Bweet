@@ -69,25 +69,26 @@ const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                         email: user.email,
                         name: user.name
                     };
-                    // Save session explicitly and wait for it
-                    return new Promise((resolve, reject) => {
+                    // Save session explicitly
+                    yield new Promise((resolve, reject) => {
                         req.session.save((err) => {
                             if (err) {
                                 logger_1.default.error(`Session save error during login for user: ${email}: ${err}`);
                                 reject(err);
-                                return;
                             }
-                            logger_1.default.info(`User ${user.email} logged in successfully`);
-                            res.status(200).json({
-                                success: true,
-                                user: {
-                                    user_id: user.user_id,
-                                    email: user.email,
-                                    name: user.name
-                                }
-                            });
-                            resolve();
+                            else {
+                                resolve();
+                            }
                         });
+                    });
+                    logger_1.default.info(`User ${user.email} logged in successfully`);
+                    return res.status(200).json({
+                        success: true,
+                        user: {
+                            user_id: user.user_id,
+                            email: user.email,
+                            name: user.name
+                        }
                     });
                 }
             }
