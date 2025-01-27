@@ -1,17 +1,30 @@
-import React, { useState }from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import '../styles/Suggestion.css';
 import '../styles/ReviewModal.css';
 import ReviewModal from '../modals/ReviewModal'; // Bileşeni yeni ismiyle import edin
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const SearchBar: React.FC = () => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [selectedSuggestion, setSelectedSuggestion] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
   const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // Only redirect if not loading and user is not authenticated
+    if (!loading && !user) {
+      navigate('/login');
+    }
+  }, [user, loading, navigate]);
+
+  if (loading) {
+    return <div>Loading...</div>; // or a loading spinner
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const inputValue = e.target.value;
@@ -47,7 +60,13 @@ const SearchBar: React.FC = () => {
 
   const handleModalSubmit = async (rating: number, review: string, isPublic: boolean) => {
     try {
-      await axios.post(
+      if (!user) {
+        console.error('User not authenticated');
+        navigate('/login');
+        return;
+      }
+
+      const response = await axios.post(
         `${process.env.REACT_APP_SERVER_ADDRESS}/api/submit`,
         {
           title: selectedSuggestion.title,
@@ -56,17 +75,27 @@ const SearchBar: React.FC = () => {
           rating,
           review,
           isPublic,
-          user_id: user?.user_id, // Changed from userId to user_id
+          user_id: user.user_id,
         },
         {
-          withCredentials: true, // Session cookie'lerinin gönderilmesi için
+          withCredentials: true,
+          headers: {
+            'Content-Type': 'application/json'
+          }
         }
       );
 
-      closeModal();
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to submit review:', error);
+      if (response.data.success) {
+        closeModal();
+        window.location.reload();
+      } else {
+        console.error('Failed to submit review:', response.data.message);
+      }
+    } catch (error: any) {
+      console.error('Failed to submit review:', error.response?.data?.message || error.message);
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
     }
   };
 

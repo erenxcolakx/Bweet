@@ -189,31 +189,33 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.deleteAccount = deleteAccount;
 const isAuthenticated = (req, res, next) => {
-    if (!req.session) {
-        logger_1.default.error('No session exists');
-        return res.status(401).json({ success: false, message: "No session" });
+    if (!req.session || !req.session.user) {
+        logger_1.default.warn('Authentication failed: Invalid session');
+        return res.status(401).json({ success: false, message: "Authentication required" });
     }
     const user = req.session.user;
     if (user === null || user === void 0 ? void 0 : user.user_id) {
         logger_1.default.info(`User authenticated: ${user.email}`);
+        req.session.touch(); // Refresh the session
         return next();
     }
-    logger_1.default.warn('Authentication failed: Invalid session');
+    logger_1.default.warn('Authentication failed: No valid user in session');
     return res.status(401).json({ success: false, message: "Authentication required" });
 };
 exports.isAuthenticated = isAuthenticated;
 // Check Auth
 const checkAuth = (req, res) => {
-    const user = req.session.user;
-    if (!req.session) {
-        logger_1.default.error('No session exists');
-        return res.status(401).json({ success: false, message: "No session" });
+    if (!req.session || !req.session.user) {
+        logger_1.default.warn('Check auth failed: No session or user');
+        return res.status(401).json({ success: false, message: "Not authenticated" });
     }
-    if (user && user.user_id) {
+    const user = req.session.user;
+    if (user === null || user === void 0 ? void 0 : user.user_id) {
         logger_1.default.info(`User is authenticated: ${user.email}`);
+        req.session.touch(); // Refresh the session
         return res.status(200).json({ success: true, user });
     }
-    logger_1.default.warn('Check auth failed. User not authenticated');
+    logger_1.default.warn('Check auth failed: Invalid user data');
     return res.status(401).json({ success: false, message: "Not authenticated" });
 };
 exports.checkAuth = checkAuth;
