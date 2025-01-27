@@ -157,6 +157,10 @@ const updatePost = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.updatePost = updatePost;
 const sortPosts = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    if (!req.session || !req.session.user) {
+        logger_1.default.warn('Unauthorized attempt to sort posts: No session');
+        return res.status(401).json({ success: false, message: "Authentication required" });
+    }
     const sortType = req.body.sortType;
     const userId = req.session.user.user_id;
     try {

@@ -137,8 +137,13 @@ export const updatePost = async (req: Request, res: Response, next: NextFunction
 };
 
 export const sortPosts = async (req: Request, res: Response, next: NextFunction) => {
+  if (!req.session || !req.session.user) {
+    logger.warn('Unauthorized attempt to sort posts: No session');
+    return res.status(401).json({ success: false, message: "Authentication required" });
+  }
+
   const sortType = req.body.sortType;
-  const userId = (req.session as CustomSession).user.user_id;
+  const userId = req.session.user.user_id;
 
   try {
     const posts = await postModel.getSortedPosts(sortType, userId);
