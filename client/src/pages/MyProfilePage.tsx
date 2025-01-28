@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'; // Use navigate for redirection
 import Header from '../components/Header';
 
 const MyProfilePage: React.FC = () => {
-  const { user, setUser } = useAuth(); // Retrieve user data from context
+  const { user, loading, setUser } = useAuth(); // Retrieve user data from context
   const [profileData, setProfileData] = useState({ email: '', name: '' });
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState('');
@@ -14,28 +14,29 @@ const MyProfilePage: React.FC = () => {
   // Fetch user profile details when the component mounts
   useEffect(() => {
     const fetchProfile = async () => {
-      try {
-        // Check if user is logged in
+      if (!loading) {
         if (!user) {
           navigate('/login'); // Redirect to login if user is not authenticated
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/profile`, { withCredentials: true });
-        if (response.data.success) {
-          setProfileData(response.data.user);
-          setName(response.data.user.name); // To prefill the name in the edit form
-        } else {
-          navigate('/login'); // Redirect to login if fetching profile data fails
+        try {
+          const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/profile`, { withCredentials: true });
+          if (response.data.success) {
+            setProfileData(response.data.user);
+            setName(response.data.user.name); // To prefill the name in the edit form
+          } else {
+            navigate('/login'); // Redirect to login if fetching profile data fails
+          }
+        } catch (error) {
+          console.error('Failed to load profile data', error);
+          navigate('/login'); // Redirect to login if error occurs
         }
-      } catch (error) {
-        console.error('Failed to load profile data', error);
-        navigate('/login'); // Redirect to login if error occurs
       }
     };
 
     fetchProfile();
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
   const handleEditToggle = () => {
     setIsEditing(!isEditing);

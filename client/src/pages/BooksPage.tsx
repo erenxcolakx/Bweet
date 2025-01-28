@@ -95,6 +95,7 @@ const BooksPage: React.FC = () => {
   };
 
   const handleSort = async (sortType: string) => {
+    if (loading) return;
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_SERVER_ADDRESS}/api/sort`,

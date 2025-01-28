@@ -29,6 +29,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (response.data.success && response.data.user) {
           setUser(response.data.user);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -43,7 +45,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Polling for session status every 5 minutes
     const intervalId = setInterval(checkAuthStatus, 5 * 60 * 1000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      setLoading(true); // Reset loading state when component unmounts
+    };
   }, []);
 
   const value = {

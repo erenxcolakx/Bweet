@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu içe akt
 import axios from 'axios';
 
 const Header: React.FC = () => {
-  const { user, setUser } = useAuth();  // user bilgisini ve setUser fonksiyonunu global state'den alıyoruz
+  const { user, setUser, loading } = useAuth();  // user bilgisini ve setUser fonksiyonunu global state'den alıyoruz
   const navigate = useNavigate();
   const location = useLocation(); // Mevcut adresi almak için kullanıyoruz
 
@@ -16,8 +16,7 @@ const Header: React.FC = () => {
         });
         if (!response.data.success) {
           setUser(null);
-          // Only redirect if we're on a protected route
-          if (location.pathname !== '/' &&
+          if (!loading && location.pathname !== '/' &&
               location.pathname !== '/login' &&
               location.pathname !== '/register' &&
               location.pathname !== '/verify-email') {
@@ -26,8 +25,7 @@ const Header: React.FC = () => {
         }
       } catch (error) {
         setUser(null);
-        // Only redirect if we're on a protected route
-        if (location.pathname !== '/' &&
+        if (!loading && location.pathname !== '/' &&
             location.pathname !== '/login' &&
             location.pathname !== '/register' &&
             location.pathname !== '/verify-email') {
@@ -36,10 +34,10 @@ const Header: React.FC = () => {
       }
     };
 
-    if (!user) {
+    if (!loading && !user) {
       checkAuth();
     }
-  }, [user, setUser, navigate, location.pathname]);
+  }, [user, loading, setUser, navigate, location.pathname]);
 
   // user nesnesinin email ve user_id bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz

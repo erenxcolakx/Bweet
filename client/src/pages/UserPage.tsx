@@ -28,20 +28,19 @@ interface UserProfile {
 }
 
 const UserPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // URL'deki id parametresini alır
+  const { id } = useParams<{ id: string }>();
   const [targetUser, setTargetUser] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleBookClick = (title: string, author: string) => {
-    navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`); // Title ve author bilgileriyle yönlendirme
+    navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`);
   };
-  
 
   useEffect(() => {
-    if (!loading) {
+    if (!authLoading) {
       if (!user) {
         navigate('/login');
         return;
@@ -53,20 +52,19 @@ const UserPage: React.FC = () => {
             withCredentials: true,
           });
           setTargetUser(response.data.user);
-          setLoading(false);
+          setPageLoading(false);
         } catch (error) {
           setError('User not found');
-          setLoading(false);
+          setPageLoading(false);
         }
       };
 
       fetchUserProfile();
     }
-  }, [id, user, loading, navigate]);
+  }, [id, user, authLoading, navigate]);
 
-  if (loading) return <div>Loading...</div>;
+  if (authLoading || pageLoading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
-
   if (!targetUser) return <div>User not found</div>;
 
   return (

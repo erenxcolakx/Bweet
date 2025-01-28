@@ -20,15 +20,16 @@ import GoogleAuthCallback from './components/GoogleAuthCallback';
 
 // Korunan rotalar için bir bileşen oluşturuyoruz
 const ProtectedRoute = ({ element: Element, ...rest }: { element: JSX.Element }) => {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       navigate('/login');
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
+  if (loading) return <div>Loading...</div>;
   return user ? Element : null;
 };
 

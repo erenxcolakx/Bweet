@@ -9,11 +9,12 @@ interface LoginFormProps {
 const LoginForm: React.FC<LoginFormProps> = ({ error }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { setUser } = useAuth(); // useAuth hook'u ile setUser fonksiyonuna erişiyoruz
+  const { setUser, loading } = useAuth(); // useAuth hook'u ile setUser fonksiyonuna erişiyoruz
   const navigate = useNavigate(); // useNavigate hook'unu kullanarak navigate fonksiyonunu alıyoruz
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
 
     try {
       const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/login`, {

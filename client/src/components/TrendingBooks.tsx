@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../styles/Home.css'
+import { useAuth } from '../contexts/AuthContext';
 
 interface Book {
   title: string;
@@ -14,10 +15,14 @@ interface Book {
 
 const TrendingBooks: React.FC = () => {
   const [books, setBooks] = useState<Book[]>([]);
-
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
 
   const handleBookClick = (title: string, author: string) => {
+    if (!loading && !user) {
+      navigate('/login');
+      return;
+    }
     navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`);
   };
 
@@ -26,7 +31,9 @@ const TrendingBooks: React.FC = () => {
     const fetchTrendingBooks = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/trending-books`);
-        setBooks(response.data.books);
+        if (response.data.success) {
+          setBooks(response.data.books);
+        }
       } catch (error) {
         console.error('Error fetching trending books:', error);
       }
