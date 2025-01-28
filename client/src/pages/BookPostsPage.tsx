@@ -22,7 +22,9 @@ const BookPosts: React.FC = () => {
     review: string;
     rating: number;
     time: string;
-    name: string
+    users: {
+      name: string;
+    };
   }
 
   const [posts, setPosts] = useState<Post[]>([]); // Yorumları tutmak için state
@@ -111,22 +113,22 @@ const BookPosts: React.FC = () => {
                                 width: '40px',
                                 height: '40px',
                                 fontSize: '20px',
-                                backgroundColor: !post.name || post.name === 'Anonym' ? '#ffffff' : '#000000',
-                                color: !post.name || post.name === 'Anonym' ? '#000000' : '#ffffff',
-                                border: !post.name || post.name === 'Anonym' ? '1px solid #000000' : '1px solid #ffffff',
-                                cursor: post.name ? 'pointer' : 'default'
+                                backgroundColor: !post.users.name || post.users.name === 'Anonym' ? '#ffffff' : '#000000',
+                                color: !post.users.name || post.users.name === 'Anonym' ? '#000000' : '#ffffff',
+                                border: !post.users.name || post.users.name === 'Anonym' ? '1px solid #000000' : '1px solid #ffffff',
+                                cursor: post.users.name ? 'pointer' : 'default'
                               }}
                             >
-                              {post.name ? post.name.charAt(0).toUpperCase() : '-'}
+                              {post.users.name ? post.users.name.charAt(0).toUpperCase() : '-'}
                             </div>
                             {/* Kullanıcı Bilgisi, tıklanabilir olacak */}
                             <div className="ms-2">
                               <h6
                                 className="card-title mb-1 user-name-text"
                                 onClick={() => navigate(`/user/${post.user_id}`)}
-                                style={{ cursor: post.name ? 'pointer' : 'default' }} // Cursor işaretçisi tıklanabilirlik durumuna göre değişir
+                                style={{ cursor: post.users.name ? 'pointer' : 'default' }} // Cursor işaretçisi tıklanabilirlik durumuna göre değişir
                               >
-                                {post.name ? post.name : 'Anonym'}
+                                {post.users.name ? post.users.name : 'Anonym'}
                               </h6>
                             </div>
                           </div>

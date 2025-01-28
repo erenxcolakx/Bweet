@@ -13,11 +13,13 @@ interface Post {
     review: string;
     rating: number;
     time: string;
-    cover_id: string |null;
+    cover_id: string | null;
     cover_image: Buffer | null;
     is_public: boolean;
-    name: string;
     user_id: number;
+    users: {
+        name: string;
+    };
 }
 
 const PublicBooksPage: React.FC = () => {

@@ -10,8 +10,11 @@ interface Post {
   cover_id: string | null;
   cover_image: Buffer | null;
   is_public: boolean;
-  name: string;
   user_id: number;
+  users: {
+    name: string;
+  };
+  name?: string;  // Add optional name property to maintain compatibility
 }
 
 interface PublicPostProps {
@@ -73,7 +76,7 @@ const PublicPost: React.FC<PublicPostProps> = ({ post }) => {
                         onClick={post.name ? handleUserProfileClick : undefined} // Eğer post.name yoksa onClick'i devre dışı bırak
                         style={{ cursor: post.name ? 'pointer' : 'default' }} // Cursor işaretçisi tıklanabilirlik durumuna göre değişir
                       >
-                        {post.name ? post.name : 'Anonym'}
+                        {post.users?.name || 'Anonym'}
                       </h6>
                       <span
                         className="book-text fw-bold"
