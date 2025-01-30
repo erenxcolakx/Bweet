@@ -4,7 +4,7 @@ import * as authModel from '../model/model'; // User model
 import logger from '../config/logger'; // Import logger
 
 const isProduction = process.env.NODE_ENV === 'production';
-const baseUrl = isProduction ? process.env.FRONTEND_URL : 'http://localhost:4000';
+const baseUrl = isProduction ? process.env.BASE_URL : 'http://localhost:4000';
 
 // Google OAuth Strategy configuration
 passport.use(new GoogleStrategy({
