@@ -27,12 +27,14 @@ app.use(express.json());
 
 // CORS configuration - ÖNEMLİ: credentials'ı doğru yapılandırmalıyız
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://bweet-fe.vercel.app']
-    : ['http://localhost:3000'],
+  origin: [
+    'https://bweet-fe.vercel.app',
+    'https://bweet-be.vercel.app',
+    'https://bweet-be-git-main-erenxcolakxs-projects.vercel.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 };
 
 app.use(cors(corsOptions));
@@ -53,11 +55,11 @@ app.use(session({
   saveUninitialized: false,
   name: 'sessionId',
   cookie: {
-    secure: process.env.NODE_ENV === 'production', // Development'da false olacak
+    secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
+    sameSite: 'none',
+    domain: '.vercel.app'
   },
   store: new MemoryStore()
 }));

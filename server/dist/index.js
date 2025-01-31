@@ -28,12 +28,14 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.json());
 // CORS configuration - ÖNEMLİ: credentials'ı doğru yapılandırmalıyız
 const corsOptions = {
-    origin: process.env.NODE_ENV === 'production'
-        ? ['https://bweet-fe.vercel.app']
-        : ['http://localhost:3000'],
+    origin: [
+        'https://bweet-fe.vercel.app',
+        'https://bweet-be.vercel.app',
+        'https://bweet-be-git-main-erenxcolakxs-projects.vercel.app'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 };
 app.use((0, cors_1.default)(corsOptions));
 app.enable('trust proxy'); // Important for secure cookies behind a proxy
@@ -52,11 +54,11 @@ app.use((0, express_session_1.default)({
     saveUninitialized: false,
     name: 'sessionId',
     cookie: {
-        secure: process.env.NODE_ENV === 'production', // Development'da false olacak
+        secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
+        sameSite: 'none',
+        domain: '.vercel.app'
     },
     store: new express_session_2.MemoryStore()
 }));
