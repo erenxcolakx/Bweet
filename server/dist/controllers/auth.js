@@ -43,6 +43,7 @@ const emailModel = __importStar(require("../model/mailModel.js"));
 const mailModel_js_1 = require("../model/mailModel.js");
 const passport_1 = __importDefault(require("passport"));
 const logger_1 = __importDefault(require("../config/logger"));
+const jwt_1 = require("../config/jwt");
 const saltRounds = 10;
 const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     const email = req.body.username;
@@ -203,19 +204,19 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.deleteAccount = deleteAccount;
 // Check Auth middleware
 const isAuthenticated = (req, res, next) => {
-    if (!req.session || !req.session.user) {
-        logger_1.default.warn('Authentication failed: No session or user');
-        return res.status(401).json({ success: false, message: "Authentication required" });
+    const authHeader = req.headers.authorization;
+    if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
+        logger_1.default.warn('No token provided');
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
     }
-    const user = req.session.user;
-    if (user === null || user === void 0 ? void 0 : user.user_id) {
-        logger_1.default.info(`User authenticated: ${user.email}`);
-        // Touch the session to keep it alive
-        req.session.touch();
-        return next();
+    const token = authHeader.split(' ')[1];
+    const decoded = (0, jwt_1.verifyToken)(token);
+    if (!decoded) {
+        logger_1.default.warn('Invalid token');
+        return res.status(401).json({ success: false, message: 'Not authenticated' });
     }
-    logger_1.default.warn('Authentication failed: Invalid user data');
-    return res.status(401).json({ success: false, message: "Authentication required" });
+    req.user = decoded;
+    next();
 };
 exports.isAuthenticated = isAuthenticated;
 // Check Auth endpoint
@@ -244,21 +245,8 @@ const googleCallback = (req, res) => {
         return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
     }
     const user = req.user;
-    req.session.regenerate((err) => {
-        if (err) {
-            logger_1.default.error('Session regeneration failed:', err);
-            return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_error`);
-        }
-        req.session.user = user;
-        req.session.save((err) => {
-            if (err) {
-                logger_1.default.error('Session save failed:', err);
-                return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_save_error`);
-            }
-            logger_1.default.info(`User logged in via Google: ${user.email}`);
-            res.redirect(`${process.env.FRONTEND_URL}/books`);
-        });
-    });
+    const token = (0, jwt_1.generateToken)(user);
+    res.redirect(`${process.env.FRONTEND_URL}/auth-callback?token=${token}`);
 };
 exports.googleCallback = googleCallback;
 // Logout for OAuth or normal logouts

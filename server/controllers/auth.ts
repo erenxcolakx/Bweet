@@ -7,6 +7,7 @@ import { sendVerificationEmail, generateVerificationToken } from '../model/mailM
 import { Session } from 'express-session';
 import passport from "passport";
 import logger from '../config/logger';
+import { generateToken, verifyToken } from '../config/jwt';
 
 declare module 'express-session' {
   interface SessionData {
@@ -182,22 +183,23 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 // Check Auth middleware
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session || !req.session.user) {
-    logger.warn('Authentication failed: No session or user');
-    return res.status(401).json({ success: false, message: "Authentication required" });
+  const authHeader = req.headers.authorization;
+  
+  if (!authHeader?.startsWith('Bearer ')) {
+    logger.warn('No token provided');
+    return res.status(401).json({ success: false, message: 'Not authenticated' });
   }
 
-  const user = req.session.user;
-  
-  if (user?.user_id) {
-    logger.info(`User authenticated: ${user.email}`);
-    // Touch the session to keep it alive
-    req.session.touch();
-    return next();
+  const token = authHeader.split(' ')[1];
+  const decoded = verifyToken(token);
+
+  if (!decoded) {
+    logger.warn('Invalid token');
+    return res.status(401).json({ success: false, message: 'Not authenticated' });
   }
-  
-  logger.warn('Authentication failed: Invalid user data');
-  return res.status(401).json({ success: false, message: "Authentication required" });
+
+  req.user = decoded;
+  next();
 };
 
 // Check Auth endpoint
@@ -222,7 +224,6 @@ export const checkAuth = (req: Request, res: Response) => {
 
 // Google OAuth yönlendirmesi
 export const googleLogin = passport.authenticate('google', { scope: ['profile', 'email'] });
-
 // Google OAuth callback
 export const googleCallback = (req: Request, res: Response) => {
   if (!req.user) {
@@ -231,24 +232,9 @@ export const googleCallback = (req: Request, res: Response) => {
   }
 
   const user = req.user as { user_id: string; email: string; name: string };
+  const token = generateToken(user);
   
-  req.session.regenerate((err) => {
-    if (err) {
-      logger.error('Session regeneration failed:', err);
-      return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_error`);
-    }
-
-    req.session.user = user;
-    req.session.save((err) => {
-      if (err) {
-        logger.error('Session save failed:', err);
-        return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_save_error`);
-      }
-      
-      logger.info(`User logged in via Google: ${user.email}`);
-      res.redirect(`${process.env.FRONTEND_URL}/books`);
-    });
-  });
+  res.redirect(`${process.env.FRONTEND_URL}/auth-callback?token=${token}`);
 };
 
 // Logout for OAuth or normal logouts
