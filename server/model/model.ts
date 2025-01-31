@@ -166,18 +166,18 @@ interface Post {
   user_id: number;
 }
 
-export const getAllPosts = async (userId: number): Promise<Post[]> => {
+export const getAllPosts = async (userId: string) => {
   try {
     const { data, error } = await supabase
       .from('books')
-      .select('*')
-      .eq('user_id', userId);
+      .select('*, users(name)')
+      .eq('user_id', userId)
+      .order('time', { ascending: false });
 
     if (error) throw error;
-    logger.info(`Fetched all posts for user with ID: ${userId}`);
     return data;
   } catch (error) {
-    logger.error(`Error fetching posts for user with ID: ${userId}`, { error });
+    logger.error(`Error getting posts for user ${userId}:`, error);
     throw error;
   }
 };
@@ -198,75 +198,100 @@ export const getPublicPosts = async () => {
   }
 };
 
-export const addPostWithCoverId = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean, coverId: string) => {
+export const addPostWithCoverId = async (
+  title: string, 
+  author: string, 
+  review: string, 
+  rating: number, 
+  time: Date, 
+  userId: string,
+  isPublic: boolean, 
+  coverId: string
+) => {
   try {
     const { data, error } = await supabase
       .from('books')
-      .insert([
-        { title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_id: coverId }
-      ])
-      .select()
-      .single();
+      .insert([{ title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_id: coverId }])
+      .select();
 
     if (error) throw error;
-    logger.info(`Added post with cover ID for user with ID: ${userId}`);
     return data;
   } catch (error) {
-    logger.error(`Error adding post with cover ID for user with ID: ${userId}`, { error });
+    logger.error(`Error adding post with coverId for user ${userId}:`, error);
     throw error;
   }
 };
 
-export const addPostWithCoverImage = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean, coverImageBuffer: Buffer) => {
+export const addPostWithCoverImage = async (
+  title: string, 
+  author: string, 
+  review: string, 
+  rating: number, 
+  time: Date, 
+  userId: string,
+  isPublic: boolean, 
+  coverImage: Buffer
+
+) => {
   try {
     const { data, error } = await supabase
       .from('books')
-      .insert([
-        { title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_image: coverImageBuffer }
-      ])
-      .select()
-      .single();
+      .insert([{ title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_image: coverImage }])
+      .select();
+
 
     if (error) throw error;
-    logger.info(`Added post with cover image for user with ID: ${userId}`);
     return data;
   } catch (error) {
-    logger.error(`Error adding post with cover image for user with ID: ${userId}`, { error });
+    logger.error(`Error adding post with cover image for user ${userId}:`, error);
     throw error;
   }
 };
 
-export const addPostWithoutCover = async (title: string, author: string, review: string, rating: number, time: Date, userId: number, isPublic: boolean) => {
+export const addPostWithoutCover = async (
+  title: string, 
+  author: string, 
+  review: string, 
+  rating: number, 
+  time: Date, 
+  userId: string,  // number yerine string
+  isPublic: boolean
+) => {
   try {
     const { data, error } = await supabase
       .from('books')
-      .insert([
-        { title, author, review, rating, time, user_id: userId, is_public: isPublic }
-      ])
-      .select()
-      .single();
+      .insert([{ title, author, review, rating, time, user_id: userId, is_public: isPublic }])
+      .select();
 
     if (error) throw error;
-    logger.info(`Added post without cover for user with ID: ${userId}`);
     return data;
   } catch (error) {
-    logger.error(`Error adding post without cover for user with ID: ${userId}`, { error });
+    logger.error(`Error adding post without cover for user ${userId}:`, error);
     throw error;
   }
 };
 
-export const updatePost = async (postId: number, editedReview: string, editedRating: number, isPublic: boolean, time: Date, userId: number): Promise<void> => {
+export const updatePost = async (
+  reviewId: number,
+  editedReview: string,
+  editedRating: number,
+  isPublic: boolean,
+  time: Date,
+  userId: string  // number yerine string
+) => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('books')
       .update({ review: editedReview, rating: editedRating, is_public: isPublic, time })
-      .eq('id', postId)
-      .eq('user_id', userId);
+      .eq('id', reviewId)
+      .eq('user_id', userId)
+      .select();
+
 
     if (error) throw error;
-    logger.info(`Updated post with ID: ${postId} for user with ID: ${userId}`);
+    return data;
   } catch (error) {
-    logger.error(`Error updating post with ID: ${postId} for user with ID: ${userId}`, { error });
+    logger.error(`Error updating post ${reviewId} for user ${userId}:`, error);
     throw error;
   }
 };
@@ -323,7 +348,7 @@ export const getBookPostsByTitleAndAuthor = async (title: string, author: string
   }
 };
 
-export const deletePost = async (postId: number, userId: number): Promise<void> => {
+export const deletePost = async (postId: number, userId: string) => {
   try {
     const { error } = await supabase
       .from('books')
@@ -334,12 +359,12 @@ export const deletePost = async (postId: number, userId: number): Promise<void> 
     if (error) throw error;
     logger.info(`Deleted post with ID: ${postId}`);
   } catch (error) {
-    logger.error(`Error deleting post with ID: ${postId}`, { error });
+    logger.error(`Error deleting post ${postId} for user ${userId}:`, error);
     throw error;
   }
 };
 
-export const getSortedPosts = async (sortType: string, userId: number): Promise<Post[]> => {
+export const getSortedPosts = async (sortType: string, userId: string): Promise<Post[]> => {
   try {
     let query = supabase
       .from('books')

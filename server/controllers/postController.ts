@@ -10,8 +10,9 @@ const upload = multer({ storage });
 
 interface CustomSession extends Session {
   user: {
-    user_id: number;
+    user_id: string;
     email: string;
+    name: string;
   };
 }
 

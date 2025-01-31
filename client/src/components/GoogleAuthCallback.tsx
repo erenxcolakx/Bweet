@@ -10,35 +10,38 @@ const GoogleAuthCallback = () => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
-          withCredentials: true,
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          }
-        });
+        const maxAttempts = 5;
+        let attempts = 0;
 
-        if (response.data.success) {
-          setUser({
-            user_id: response.data.user.user_id,
-            email: response.data.user.email,
-            name: response.data.user.name,
+        const attemptCheck = async () => {
+          const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
+            withCredentials: true
           });
-          navigate('/books');
-        } else {
-          navigate('/login');
-        }
+
+          if (response.data.success) {
+            setUser(response.data.user);
+            navigate('/books');
+          } else {
+            if (attempts < maxAttempts) {
+              attempts++;
+              setTimeout(attemptCheck, 1000); // Her 1 saniyede bir tekrar dene
+            } else {
+              navigate('/login');
+            }
+          }
+        };
+
+        setTimeout(attemptCheck, 3500); // İlk kontrolü 2 saniye sonra başlat
       } catch (error) {
         console.error('Auth check failed:', error);
         navigate('/login');
       }
     };
 
-    // Kısa bir gecikme ekleyelim
-    setTimeout(checkAuth, 1000);
+    checkAuth();
   }, [navigate, setUser]);
 
-  return <div>Redirecting...</div>;
+  return <div>Authenticating...</div>;
 };
 
 export default GoogleAuthCallback;

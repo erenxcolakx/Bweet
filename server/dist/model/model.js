@@ -165,15 +165,15 @@ const getAllPosts = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data, error } = yield database_1.default
             .from('books')
-            .select('*')
-            .eq('user_id', userId);
+            .select('*, users(name)')
+            .eq('user_id', userId)
+            .order('time', { ascending: false });
         if (error)
             throw error;
-        logger_1.default.info(`Fetched all posts for user with ID: ${userId}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error fetching posts for user with ID: ${userId}`, { error });
+        logger_1.default.error(`Error getting posts for user ${userId}:`, error);
         throw error;
     }
 });
@@ -199,75 +199,66 @@ const addPostWithCoverId = (title, author, review, rating, time, userId, isPubli
     try {
         const { data, error } = yield database_1.default
             .from('books')
-            .insert([
-            { title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_id: coverId }
-        ])
-            .select()
-            .single();
+            .insert([{ title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_id: coverId }])
+            .select();
         if (error)
             throw error;
-        logger_1.default.info(`Added post with cover ID for user with ID: ${userId}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error adding post with cover ID for user with ID: ${userId}`, { error });
+        logger_1.default.error(`Error adding post with coverId for user ${userId}:`, error);
         throw error;
     }
 });
 exports.addPostWithCoverId = addPostWithCoverId;
-const addPostWithCoverImage = (title, author, review, rating, time, userId, isPublic, coverImageBuffer) => __awaiter(void 0, void 0, void 0, function* () {
+const addPostWithCoverImage = (title, author, review, rating, time, userId, isPublic, coverImage) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data, error } = yield database_1.default
             .from('books')
-            .insert([
-            { title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_image: coverImageBuffer }
-        ])
-            .select()
-            .single();
+            .insert([{ title, author, review, rating, time, user_id: userId, is_public: isPublic, cover_image: coverImage }])
+            .select();
         if (error)
             throw error;
-        logger_1.default.info(`Added post with cover image for user with ID: ${userId}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error adding post with cover image for user with ID: ${userId}`, { error });
+        logger_1.default.error(`Error adding post with cover image for user ${userId}:`, error);
         throw error;
     }
 });
 exports.addPostWithCoverImage = addPostWithCoverImage;
-const addPostWithoutCover = (title, author, review, rating, time, userId, isPublic) => __awaiter(void 0, void 0, void 0, function* () {
+const addPostWithoutCover = (title, author, review, rating, time, userId, // number yerine string
+isPublic) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data, error } = yield database_1.default
             .from('books')
-            .insert([
-            { title, author, review, rating, time, user_id: userId, is_public: isPublic }
-        ])
-            .select()
-            .single();
+            .insert([{ title, author, review, rating, time, user_id: userId, is_public: isPublic }])
+            .select();
         if (error)
             throw error;
-        logger_1.default.info(`Added post without cover for user with ID: ${userId}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error adding post without cover for user with ID: ${userId}`, { error });
+        logger_1.default.error(`Error adding post without cover for user ${userId}:`, error);
         throw error;
     }
 });
 exports.addPostWithoutCover = addPostWithoutCover;
-const updatePost = (postId, editedReview, editedRating, isPublic, time, userId) => __awaiter(void 0, void 0, void 0, function* () {
+const updatePost = (reviewId, editedReview, editedRating, isPublic, time, userId // number yerine string
+) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { error } = yield database_1.default
+        const { data, error } = yield database_1.default
             .from('books')
             .update({ review: editedReview, rating: editedRating, is_public: isPublic, time })
-            .eq('id', postId)
-            .eq('user_id', userId);
+            .eq('id', reviewId)
+            .eq('user_id', userId)
+            .select();
         if (error)
             throw error;
-        logger_1.default.info(`Updated post with ID: ${postId} for user with ID: ${userId}`);
+        return data;
     }
     catch (error) {
-        logger_1.default.error(`Error updating post with ID: ${postId} for user with ID: ${userId}`, { error });
+        logger_1.default.error(`Error updating post ${reviewId} for user ${userId}:`, error);
         throw error;
     }
 });
@@ -339,7 +330,7 @@ const deletePost = (postId, userId) => __awaiter(void 0, void 0, void 0, functio
         logger_1.default.info(`Deleted post with ID: ${postId}`);
     }
     catch (error) {
-        logger_1.default.error(`Error deleting post with ID: ${postId}`, { error });
+        logger_1.default.error(`Error deleting post ${postId} for user ${userId}:`, error);
         throw error;
     }
 });
