@@ -89,20 +89,18 @@ export const getPublicUserInfosById = async (user_id: number) => {
   }
 };
 
-export const updateUserName = async (user_id: number, name: string) => {
+export const updateUserName = async (userId: string, name: string) => {
   try {
     const { data, error } = await supabase
       .from('users')
       .update({ name })
-      .eq('user_id', user_id)
-      .select()
-      .single();
+      .eq('user_id', userId)
+      .select();
 
     if (error) throw error;
-    logger.info(`Updated username for user ID: ${user_id}`);
     return data;
   } catch (error) {
-    logger.error(`Error updating username for user ID: ${user_id}`, { error });
+    logger.error(`Error updating username for user ${userId}:`, error);
     throw error;
   }
 };
@@ -126,30 +124,17 @@ export const createUser = async (email: string, hashedPassword: string): Promise
   }
 };
 
-export const deleteUserById = async (user_id: number) => {
+export const deleteUserById = async (userId: string) => {
   try {
-    // Delete books first
-    const { error: booksError } = await supabase
-      .from('books')
-      .delete()
-      .eq('user_id', user_id);
-
-    if (booksError) throw booksError;
-
-    // Then delete user
-    const { data, error: userError } = await supabase
+    const { error } = await supabase
       .from('users')
       .delete()
-      .eq('user_id', user_id)
-      .select()
-      .single();
+      .eq('user_id', userId);
 
-    if (userError) throw userError;
-
-    logger.info(`Deleted user and books for user ID: ${user_id}`);
-    return data;
+    if (error) throw error;
+    logger.info(`User deleted successfully: ${userId}`);
   } catch (error) {
-    logger.error(`Error deleting user by ID: ${user_id}`, { error });
+    logger.error(`Error deleting user: ${userId}`, error);
     throw error;
   }
 };

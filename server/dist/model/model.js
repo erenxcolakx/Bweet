@@ -92,21 +92,19 @@ const getPublicUserInfosById = (user_id) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.getPublicUserInfosById = getPublicUserInfosById;
-const updateUserName = (user_id, name) => __awaiter(void 0, void 0, void 0, function* () {
+const updateUserName = (userId, name) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data, error } = yield database_1.default
             .from('users')
             .update({ name })
-            .eq('user_id', user_id)
-            .select()
-            .single();
+            .eq('user_id', userId)
+            .select();
         if (error)
             throw error;
-        logger_1.default.info(`Updated username for user ID: ${user_id}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error updating username for user ID: ${user_id}`, { error });
+        logger_1.default.error(`Error updating username for user ${userId}:`, error);
         throw error;
     }
 });
@@ -131,29 +129,18 @@ const createUser = (email, hashedPassword) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.createUser = createUser;
-const deleteUserById = (user_id) => __awaiter(void 0, void 0, void 0, function* () {
+const deleteUserById = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Delete books first
-        const { error: booksError } = yield database_1.default
-            .from('books')
-            .delete()
-            .eq('user_id', user_id);
-        if (booksError)
-            throw booksError;
-        // Then delete user
-        const { data, error: userError } = yield database_1.default
+        const { error } = yield database_1.default
             .from('users')
             .delete()
-            .eq('user_id', user_id)
-            .select()
-            .single();
-        if (userError)
-            throw userError;
-        logger_1.default.info(`Deleted user and books for user ID: ${user_id}`);
-        return data;
+            .eq('user_id', userId);
+        if (error)
+            throw error;
+        logger_1.default.info(`User deleted successfully: ${userId}`);
     }
     catch (error) {
-        logger_1.default.error(`Error deleting user by ID: ${user_id}`, { error });
+        logger_1.default.error(`Error deleting user: ${userId}`, error);
         throw error;
     }
 });

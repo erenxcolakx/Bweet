@@ -65,7 +65,7 @@ const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                     }
                     // Set session data
                     req.session.user = {
-                        user_id: user.user_id,
+                        user_id: user.user_id.toString(),
                         email: user.email,
                         name: user.name
                     };
@@ -240,18 +240,24 @@ exports.googleLogin = passport_1.default.authenticate('google', { scope: ['profi
 // Google OAuth callback
 const googleCallback = (req, res) => {
     if (!req.user) {
-        logger_1.default.error('Google authentication failed');
-        return res.status(401).json({ success: false, message: "Authentication failed" });
+        logger_1.default.error('Google authentication failed - No user data');
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
     }
     const user = req.user;
-    req.session.user = { user_id: user.user_id, email: user.email, name: user.name };
-    req.session.save((err) => {
+    req.session.regenerate((err) => {
         if (err) {
-            logger_1.default.error(`Session save error after Google login for user: ${user.email}`);
-            return res.status(500).json({ success: false, message: "Session save error" });
+            logger_1.default.error('Session regeneration failed:', err);
+            return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_error`);
         }
-        logger_1.default.info(`User logged in via Google: ${user.email}`);
-        res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000/home');
+        req.session.user = user;
+        req.session.save((err) => {
+            if (err) {
+                logger_1.default.error('Session save failed:', err);
+                return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_save_error`);
+            }
+            logger_1.default.info(`User logged in via Google: ${user.email}`);
+            res.redirect(`${process.env.FRONTEND_URL}/books`);
+        });
     });
 };
 exports.googleCallback = googleCallback;

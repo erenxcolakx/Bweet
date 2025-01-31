@@ -11,7 +11,7 @@ import logger from '../config/logger';
 declare module 'express-session' {
   interface SessionData {
     user: {
-      user_id: number;
+      user_id: string;
       email: string;
       name: string;
     };
@@ -44,7 +44,7 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
 
           // Set session data
           req.session.user = {
-            user_id: user.user_id,
+            user_id: user.user_id.toString(),
             email: user.email,
             name: user.name
           };
@@ -226,18 +226,28 @@ export const googleLogin = passport.authenticate('google', { scope: ['profile', 
 // Google OAuth callback
 export const googleCallback = (req: Request, res: Response) => {
   if (!req.user) {
-    logger.error('Google authentication failed');
-    return res.status(401).json({ success: false, message: "Authentication failed" });
+    logger.error('Google authentication failed - No user data');
+    return res.redirect(`${process.env.FRONTEND_URL}/login?error=auth_failed`);
   }
-  const user = req.user as { user_id: number; email: string; name: string };
-  req.session.user = { user_id: user.user_id, email: user.email, name: user.name };
-  req.session.save((err) => {
+
+  const user = req.user as { user_id: string; email: string; name: string };
+  
+  req.session.regenerate((err) => {
     if (err) {
-      logger.error(`Session save error after Google login for user: ${user.email}`);
-      return res.status(500).json({ success: false, message: "Session save error" });
+      logger.error('Session regeneration failed:', err);
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_error`);
     }
-    logger.info(`User logged in via Google: ${user.email}`);
-    res.redirect(process.env.FRONTEND_URL || 'http://localhost:3000/home');
+
+    req.session.user = user;
+    req.session.save((err) => {
+      if (err) {
+        logger.error('Session save failed:', err);
+        return res.redirect(`${process.env.FRONTEND_URL}/login?error=session_save_error`);
+      }
+      
+      logger.info(`User logged in via Google: ${user.email}`);
+      res.redirect(`${process.env.FRONTEND_URL}/books`);
+    });
   });
 };
 

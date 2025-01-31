@@ -4,10 +4,11 @@ import { Session } from 'express-session';
 import logger from '../config/logger';  // Import the logger
 
 interface CustomSession extends Session {
-    user: {
-      user_id: number;
-      email: string;
-    };
+  user?: {
+    user_id: string;  // number yerine string
+    email: string;
+    name: string;
+  };
 }
 
 export const getProfile = async (req: Request, res: Response, next: NextFunction) => {
