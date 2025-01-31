@@ -12,6 +12,7 @@ const passport_1 = __importDefault(require("./controllers/passport")); // Passpo
 const logger_1 = __importDefault(require("./config/logger")); // Import the logger
 const path_1 = __importDefault(require("path"));
 const sessionHealth_1 = require("./middlewares/sessionHealth");
+const express_session_2 = require("express-session");
 dotenv_1.default.config({
     path: process.env.NODE_ENV === 'production'
         ? '.env.production'
@@ -27,17 +28,12 @@ app.use(express_1.default.urlencoded({ extended: true }));
 app.use(express_1.default.json());
 // CORS configuration - ÖNEMLİ: credentials'ı doğru yapılandırmalıyız
 const corsOptions = {
-    origin: [
-        'http://localhost:3000',
-        'https://bweet-fe.vercel.app',
-        'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app',
-        'https://bweet.vercel.app'
-    ],
+    origin: process.env.NODE_ENV === 'production'
+        ? ['https://bweet-fe.vercel.app']
+        : ['http://localhost:3000'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-    exposedHeaders: ['set-cookie'],
-    preflightContinue: true
+    allowedHeaders: ['Content-Type', 'Authorization'],
 };
 app.use((0, cors_1.default)(corsOptions));
 app.enable('trust proxy'); // Important for secure cookies behind a proxy
@@ -49,21 +45,20 @@ if (!process.env.SECRET_KEY) {
 else {
     logger_1.default.info("SECRET_KEY is defined and ready");
 }
-// Session configuration - Production için güvenli ayarlar
+// Session configuration
 app.use((0, express_session_1.default)({
     secret: process.env.SECRET_KEY || 'your-secret-key',
-    resave: true,
+    resave: false,
     saveUninitialized: false,
     name: 'sessionId',
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: process.env.NODE_ENV === 'production', // Development'da false olacak
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
-        sameSite: 'none',
-        path: '/',
-        partitioned: true // Add partitioned attribute for Chrome's new requirements
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
     },
-    proxy: true
+    store: new express_session_2.MemoryStore()
 }));
 logger_1.default.info("Session middleware configured");
 // Session health check middleware

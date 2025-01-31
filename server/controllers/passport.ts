@@ -61,17 +61,12 @@ passport.serializeUser((user: any, done) => {
 passport.deserializeUser(async (id: string, done) => {
   try {
     logger.info(`Deserializing user with ID: ${id}`);
-    const user = await authModel.getUserById(Number(id));
+    const user = await authModel.getUserById(id);
     logger.info(`User deserialized: ${user.email}`);
     done(null, user);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      logger.error(`Error deserializing user: ${error.message}`);
-      done(error, null);
-    } else {
-      logger.error('Unknown error during deserialization');
-      done(new Error('Unknown error'), null);
-    }
+  } catch (error) {
+    logger.error(`Error deserializing user: ${error}`);
+    done(error, null);
   }
 });
 

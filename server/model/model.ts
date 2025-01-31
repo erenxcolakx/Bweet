@@ -31,19 +31,19 @@ export const getUserByEmail = async (email: string): Promise<User | null> => {
   }
 };
 
-export const getUserById = async (user_id: number) => {
+export const getUserById = async (id: string) => {
   try {
     const { data, error } = await supabase
       .from('users')
-      .select('user_id, email, name')
-      .eq('user_id', user_id)
+      .select('*')
+      .eq('user_id', id)
       .single();
 
     if (error) throw error;
-    logger.info(`Fetched user by ID: ${user_id}`);
+    logger.info(`Fetched user by ID: ${id}`);
     return data;
   } catch (error) {
-    logger.error(`Error fetching user by ID: ${user_id}`, { error });
+    logger.error(`Error fetching user by ID: ${id}`, { error });
     throw error;
   }
 };
@@ -392,9 +392,15 @@ export const getUserByGoogleId = async (googleId: string) => {
       .from('users')
       .select('*')
       .eq('google_id', googleId)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
+    
+    if (!data) {
+      logger.info(`No user found with Google ID: ${googleId}`);
+      return null;
+    }
+
     logger.info(`Fetched user by Google ID: ${googleId}`);
     return data;
   } catch (error) {
@@ -405,19 +411,44 @@ export const getUserByGoogleId = async (googleId: string) => {
 
 export const createUserWithGoogle = async (googleId: string, name: string, email: string) => {
   try {
+    // Önce email ile kullanıcı kontrolü yapalım
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      // Email zaten varsa, Google ID'yi güncelle
+      const { data, error } = await supabase
+        .from('users')
+        .update({ google_id: googleId })
+        .eq('email', email)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    }
+
+    // Yeni kullanıcı oluştur (created_at kaldırıldı)
     const { data, error } = await supabase
       .from('users')
       .insert([
-        { google_id: googleId, name, email, is_verified: true }
+        { 
+          google_id: googleId, 
+          name, 
+          email, 
+          is_verified: true
+        }
       ])
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      logger.error('Error creating user with Google:', error);
+      throw error;
+    }
+
     logger.info(`Created new user with Google ID: ${googleId}`);
     return data;
   } catch (error) {
-    logger.error(`Error creating user with Google ID: ${googleId}`, { error });
+    logger.error(`Error in createUserWithGoogle: ${error}`);
     throw error;
   }
 };

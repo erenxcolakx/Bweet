@@ -88,19 +88,13 @@ passport_1.default.serializeUser((user, done) => {
 passport_1.default.deserializeUser((id, done) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         logger_1.default.info(`Deserializing user with ID: ${id}`);
-        const user = yield authModel.getUserById(Number(id));
+        const user = yield authModel.getUserById(id);
         logger_1.default.info(`User deserialized: ${user.email}`);
         done(null, user);
     }
     catch (error) {
-        if (error instanceof Error) {
-            logger_1.default.error(`Error deserializing user: ${error.message}`);
-            done(error, null);
-        }
-        else {
-            logger_1.default.error('Unknown error during deserialization');
-            done(new Error('Unknown error'), null);
-        }
+        logger_1.default.error(`Error deserializing user: ${error}`);
+        done(error, null);
     }
 }));
 exports.default = passport_1.default;

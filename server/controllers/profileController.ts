@@ -18,7 +18,7 @@ export const getProfile = async (req: Request, res: Response, next: NextFunction
       return res.status(401).json({ success: false, message: "User not authenticated" });
     }
 
-    const user = await authModel.getUserById(userId);
+    const user = await authModel.getUserById(userId.toString());
 
     if (!user) {
       logger.warn(`User not found: userId = ${userId}`);

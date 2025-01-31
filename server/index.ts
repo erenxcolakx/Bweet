@@ -7,6 +7,7 @@ import passport from "./controllers/passport";  // Passport.js configuration
 import logger from './config/logger';  // Import the logger
 import path from 'path';
 import { checkSessionHealth } from './middlewares/sessionHealth';
+import { MemoryStore } from 'express-session';
 env.config({
   path: process.env.NODE_ENV === 'production'
     ? '.env.production'
@@ -26,17 +27,12 @@ app.use(express.json());
 
 // CORS configuration - ÖNEMLİ: credentials'ı doğru yapılandırmalıyız
 const corsOptions = {
-  origin: [
-    'http://localhost:3000',
-    'https://bweet-fe.vercel.app',
-    'https://bweet-fe-git-main-erenxcolakxs-projects.vercel.app',
-    'https://bweet.vercel.app'
-  ],
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://bweet-fe.vercel.app']
+    : ['http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
-  exposedHeaders: ['set-cookie'],
-  preflightContinue: true
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
 app.use(cors(corsOptions));
@@ -50,21 +46,20 @@ if (!process.env.SECRET_KEY) {
   logger.info("SECRET_KEY is defined and ready");
 }
 
-// Session configuration - Production için güvenli ayarlar
+// Session configuration
 app.use(session({
   secret: process.env.SECRET_KEY || 'your-secret-key',
-  resave: true,
+  resave: false,
   saveUninitialized: false,
   name: 'sessionId',
   cookie: {
-    secure: process.env.NODE_ENV === 'production',
+    secure: process.env.NODE_ENV === 'production', // Development'da false olacak
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000,
-    sameSite: 'none',
-    path: '/',
-    partitioned: true // Add partitioned attribute for Chrome's new requirements
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+    domain: process.env.NODE_ENV === 'production' ? '.vercel.app' : 'localhost'
   },
-  proxy: true
+  store: new MemoryStore()
 }));
 logger.info("Session middleware configured");
 

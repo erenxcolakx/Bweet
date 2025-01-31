@@ -46,7 +46,7 @@ const getProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             logger_1.default.warn("Unauthorized access attempt to get profile");
             return res.status(401).json({ success: false, message: "User not authenticated" });
         }
-        const user = yield authModel.getUserById(userId);
+        const user = yield authModel.getUserById(userId.toString());
         if (!user) {
             logger_1.default.warn(`User not found: userId = ${userId}`);
             return res.status(404).json({ success: false, message: "User not found" });

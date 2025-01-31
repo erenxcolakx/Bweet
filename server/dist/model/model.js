@@ -35,20 +35,20 @@ const getUserByEmail = (email) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.getUserByEmail = getUserByEmail;
-const getUserById = (user_id) => __awaiter(void 0, void 0, void 0, function* () {
+const getUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { data, error } = yield database_1.default
             .from('users')
-            .select('user_id, email, name')
-            .eq('user_id', user_id)
+            .select('*')
+            .eq('user_id', id)
             .single();
         if (error)
             throw error;
-        logger_1.default.info(`Fetched user by ID: ${user_id}`);
+        logger_1.default.info(`Fetched user by ID: ${id}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error fetching user by ID: ${user_id}`, { error });
+        logger_1.default.error(`Error fetching user by ID: ${id}`, { error });
         throw error;
     }
 });
@@ -394,9 +394,13 @@ const getUserByGoogleId = (googleId) => __awaiter(void 0, void 0, void 0, functi
             .from('users')
             .select('*')
             .eq('google_id', googleId)
-            .single();
+            .maybeSingle();
         if (error)
             throw error;
+        if (!data) {
+            logger_1.default.info(`No user found with Google ID: ${googleId}`);
+            return null;
+        }
         logger_1.default.info(`Fetched user by Google ID: ${googleId}`);
         return data;
     }
@@ -408,20 +412,42 @@ const getUserByGoogleId = (googleId) => __awaiter(void 0, void 0, void 0, functi
 exports.getUserByGoogleId = getUserByGoogleId;
 const createUserWithGoogle = (googleId, name, email) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        // Önce email ile kullanıcı kontrolü yapalım
+        const existingUser = yield (0, exports.getUserByEmail)(email);
+        if (existingUser) {
+            // Email zaten varsa, Google ID'yi güncelle
+            const { data, error } = yield database_1.default
+                .from('users')
+                .update({ google_id: googleId })
+                .eq('email', email)
+                .select()
+                .single();
+            if (error)
+                throw error;
+            return data;
+        }
+        // Yeni kullanıcı oluştur (created_at kaldırıldı)
         const { data, error } = yield database_1.default
             .from('users')
             .insert([
-            { google_id: googleId, name, email, is_verified: true }
+            {
+                google_id: googleId,
+                name,
+                email,
+                is_verified: true
+            }
         ])
             .select()
             .single();
-        if (error)
+        if (error) {
+            logger_1.default.error('Error creating user with Google:', error);
             throw error;
+        }
         logger_1.default.info(`Created new user with Google ID: ${googleId}`);
         return data;
     }
     catch (error) {
-        logger_1.default.error(`Error creating user with Google ID: ${googleId}`, { error });
+        logger_1.default.error(`Error in createUserWithGoogle: ${error}`);
         throw error;
     }
 });
