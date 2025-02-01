@@ -10,10 +10,14 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // Public routes that don't require authentication
+      const publicRoutes = ['/', '/login', '/register'];
+      
       const token = localStorage.getItem('token');
       if (!token) {
         setUser(null);
-        if (location.pathname !== '/login' && location.pathname !== '/register') {
+        // Only redirect to login if not on a public route
+        if (!publicRoutes.includes(location.pathname)) {
           navigate('/login');
         }
         return;
@@ -31,14 +35,16 @@ const Header: React.FC = () => {
         } else {
           localStorage.removeItem('token');
           setUser(null);
-          if (location.pathname !== '/login' && location.pathname !== '/register') {
+          // Only redirect to login if not on a public route
+          if (!publicRoutes.includes(location.pathname)) {
             navigate('/login');
           }
         }
       } catch (error) {
         localStorage.removeItem('token');
         setUser(null);
-        if (location.pathname !== '/login' && location.pathname !== '/register') {
+        // Only redirect to login if not on a public route
+        if (!publicRoutes.includes(location.pathname)) {
           navigate('/login');
         }
       }

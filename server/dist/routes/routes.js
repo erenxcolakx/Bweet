@@ -54,6 +54,7 @@ router.route('/api/delete-account').post(auth.isAuthenticated, auth.deleteAccoun
 router.route('/api/check-auth').get(auth.checkAuth);
 router.route("/api/logout").get(auth.handleLogout);
 // Books işlemleri
+router.route("/api/trending-books").get(convertImagesToBase64_1.default, postController.getTrendingBooks);
 router.route("/api/books").get(auth.isAuthenticated, convertImagesToBase64_1.default, postController.getPosts);
 router.route("/api/books/search").get(auth.isAuthenticated, convertImagesToBase64_1.default, postController.searchBooks);
 router.route('/api/books/:title/:author').get(convertImagesToBase64_1.default, postController.getBookPosts);
@@ -63,7 +64,6 @@ router.route("/api/sort").post(auth.isAuthenticated, convertImagesToBase64_1.def
 router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deletePost);
 router.route("/api/home").get(auth.isAuthenticated, convertImagesToBase64_1.default, postController.getPublicPosts);
 router.route("/api/user/:id").get(auth.isAuthenticated, convertImagesToBase64_1.default, profileController.getUserInfo);
-router.route("/api/trending-books").get(convertImagesToBase64_1.default, postController.getTrendingBooks);
 // Google OAuth yönlendirmesi
 router.route('/api/google').get(auth.googleLogin);
 // Google OAuth geri dönüş işlemi

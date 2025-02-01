@@ -20,14 +20,13 @@ const TrendingBooks: React.FC = () => {
 
   const handleBookClick = (title: string, author: string) => {
     if (!loading && !user) {
-      navigate('/login');
+      alert("Please login to view book details");
       return;
     }
     navigate(`/books/${encodeURIComponent(title)}/${encodeURIComponent(author)}`);
   };
 
   useEffect(() => {
-    // Trending books API çağrısı
     const fetchTrendingBooks = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/trending-books`);
