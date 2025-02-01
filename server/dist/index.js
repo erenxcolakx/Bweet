@@ -31,6 +31,7 @@ const corsOptions = {
     origin: [
         'https://bweet-fe.vercel.app',
         'https://bweet-be.vercel.app',
+        'https://bweet.vercel.app',
         'https://bweet-be-git-main-erenxcolakxs-projects.vercel.app',
         'http://localhost:3000'
     ],
