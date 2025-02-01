@@ -6,7 +6,7 @@ interface BookPostProps {
     title: string;
     author: string;
     cover_id: string | null;
-    cover_image: Buffer | null;
+    cover_image: string | { type: string, data: number[] } | null;
     rating: number;
     review: string;
     time: string;
@@ -50,9 +50,9 @@ const BookPost: React.FC<BookPostProps> = ({ post, onDelete, onUpdate }) => {
           src={
             post.cover_id
               ? `https://covers.openlibrary.org/b/id/${post.cover_id}.jpg`
-              : post.cover_image
-              ? `data:image/jpeg;base64,${post.cover_image}`
-              : '/images/defbookcover.jpg'
+              : typeof post.cover_image === 'string'
+                ? post.cover_image
+                : '/images/defbookcover.jpg'
           }
           alt={post.title}
         />

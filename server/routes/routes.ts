@@ -30,22 +30,21 @@ router.route("/api/logout").get(auth.handleLogout);
 // Books işlemleri
 router.route("/api/books").get(auth.isAuthenticated, convertImagesToBase64, postController.getPosts);
 router.route("/api/books/search").get(auth.isAuthenticated, convertImagesToBase64, postController.searchBooks);
-router.route('/api/books/:title/:author').get(auth.isAuthenticated, convertImagesToBase64, postController.getBookPosts);
+router.route('/api/books/:title/:author').get(convertImagesToBase64, postController.getBookPosts);
 router.route("/api/submit").post(auth.isAuthenticated, upload.single('coverImage'), postController.addPost);
 router.route("/api/edit").post(auth.isAuthenticated, postController.updatePost);
 router.route("/api/sort").post(auth.isAuthenticated, convertImagesToBase64, postController.sortPosts);
 router.route("/api/delete/:id").post(auth.isAuthenticated, postController.deletePost);
 router.route("/api/home").get(auth.isAuthenticated, convertImagesToBase64, postController.getPublicPosts);
 router.route("/api/user/:id").get(auth.isAuthenticated, convertImagesToBase64, profileController.getUserInfo);
-router.route("/api/trending-books").get( convertImagesToBase64, postController.getTrendingBooks);
-
-
+router.route("/api/trending-books").get(convertImagesToBase64, postController.getTrendingBooks);
 // Google OAuth yönlendirmesi
 router.route('/api/google').get(auth.googleLogin);
 
 // Google OAuth geri dönüş işlemi
 router.route('/api/google/callback').get(
   passport.authenticate('google', {
+    session: false,  // Don't use session
     failureRedirect: `${process.env.FRONTEND_URL}/login`
   }),
   auth.googleCallback

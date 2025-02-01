@@ -46,7 +46,7 @@ export const getBookPosts = async (req: Request, res: Response) => {
 
     // Kapak resmi base64'e dönüştürülüyor
     if (book.cover_image && Buffer.isBuffer(book.cover_image)) {
-      book.cover_image = book.cover_image.toString('base64');
+      book.cover_image = `data:image/jpeg;base64,${book.cover_image.toString('base64')}`;
     }
 
     // Yorumları getiriyoruz

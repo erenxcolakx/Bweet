@@ -4,40 +4,48 @@ import { useAuth } from '../contexts/AuthContext';  // useAuth hook'unu içe akt
 import axios from 'axios';
 
 const Header: React.FC = () => {
-  const { user, setUser, loading } = useAuth();  // user bilgisini ve setUser fonksiyonunu global state'den alıyoruz
+  const { user, setUser } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation(); // Mevcut adresi almak için kullanıyoruz
+  const location = useLocation();
 
   useEffect(() => {
     const checkAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
+        if (location.pathname !== '/login' && location.pathname !== '/register') {
+          navigate('/login');
+        }
+        return;
+      }
+
       try {
         const response = await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/check-auth`, {
-          withCredentials: true
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
         });
-        if (!response.data.success) {
+
+        if (response.data.success) {
+          setUser(response.data.user);
+        } else {
+          localStorage.removeItem('token');
           setUser(null);
-          if (!loading && location.pathname !== '/' &&
-              location.pathname !== '/login' &&
-              location.pathname !== '/register' &&
-              location.pathname !== '/verify-email') {
+          if (location.pathname !== '/login' && location.pathname !== '/register') {
             navigate('/login');
           }
         }
       } catch (error) {
+        localStorage.removeItem('token');
         setUser(null);
-        if (!loading && location.pathname !== '/' &&
-            location.pathname !== '/login' &&
-            location.pathname !== '/register' &&
-            location.pathname !== '/verify-email') {
+        if (location.pathname !== '/login' && location.pathname !== '/register') {
           navigate('/login');
         }
       }
     };
 
-    if (!loading && !user) {
-      checkAuth();
-    }
-  }, [user, loading, setUser, navigate, location.pathname]);
+    checkAuth();
+  }, [setUser, navigate, location.pathname]);
 
   // user nesnesinin email ve user_id bilgilerini alıyoruz
   const userEmail = user?.email || "User";  // email varsa alıyoruz, yoksa 'User' gösteriyoruz
@@ -45,11 +53,10 @@ const Header: React.FC = () => {
 
   const handleLogout = async () => {
     try {
-      await axios.get(`${process.env.REACT_APP_SERVER_ADDRESS}/api/logout`, {
-        withCredentials: true,  // Oturum çerezlerini içermesini sağlar
-      });
-      setUser(null);  // Kullanıcı bilgisini temizliyoruz
-      navigate('/');  // Logout sonrası ana sayfaya yönlendiriyoruz
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      navigate('/');
     } catch (error) {
       console.error('Logout failed:', error);
       alert('Logout failed. Please try again.');

@@ -19,12 +19,18 @@ export const generateToken = (user: any) => {
 
 export const verifyToken = (token: string) => {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, JWT_SECRET) as JWTPayload;
   } catch (error) {
     logger.error('JWT verification failed:', error);
     return null;
   }
 };
+
+interface JWTPayload {
+  user_id: string;
+  email: string;
+  name: string;
+}
 
 export const sendTokenResponse = (res: Response, user: any) => {
   const token = generateToken(user);

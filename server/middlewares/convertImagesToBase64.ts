@@ -7,53 +7,35 @@ transmitted in JSON format and needs to be converted to a more web-friendly form
 like Base64.*/
 
 import { Request, Response, NextFunction } from 'express';
-import { Buffer } from 'buffer';
+import logger from '../config/logger';
 
-// Helper function to recursively convert cover_image fields in objects or arrays
-const convertCoverImageToBase64 = (data: any): any => {
-  if (Array.isArray(data)) {
-    return data.map(item => convertCoverImageToBase64(item));
-  } else if (typeof data === 'object' && data !== null) {
-    const newData = { ...data };
-
-    // Check if the object contains a cover_image field
-    if (newData.cover_image && Buffer.isBuffer(newData.cover_image)) {
-      newData.cover_image = newData.cover_image.toString('base64');
-    }
-
-    // Recursively process all properties
-    for (const key in newData) {
-      if (newData.hasOwnProperty(key)) {
-        if (newData[key] instanceof Date) {
-          // Leave Date objects unchanged
-          newData[key] = newData[key];
-        } else {
-          // Recursively convert other object properties (including nested ones)
-          newData[key] = convertCoverImageToBase64(newData[key]);
+const convertImagesToBase64 = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const modifyData = (item: any) => {
+      if (item && item.cover_image) {
+        if (Buffer.isBuffer(item.cover_image)) {
+          const base64String = item.cover_image.toString('base64');
+          return {
+            ...item,
+            cover_image: encodeURI(`data:image/jpeg;base64,${base64String}`)
+          };
         }
       }
+      return item;
+    };
+
+    if (res.locals.data) {
+      if (Array.isArray(res.locals.data)) {
+        res.locals.data = res.locals.data.map(modifyData);
+      } else {
+        res.locals.data = modifyData(res.locals.data);
+      }
     }
-
-    return newData;
+    next();
+  } catch (error) {
+    logger.error('Error converting images to base64:', error);
+    next(error);
   }
-
-  // Return non-object data (string, number, etc.) unchanged
-  return data;
-};
-
-const convertImagesToBase64 = (req: Request, res: Response, next: NextFunction) => {
-  const originalJson = res.json;
-
-  // Overriding res.json
-  res.json = function (data: any): Response<any, Record<string, any>> {
-    // Recursively convert all cover_image fields in the response data
-    const transformedData = convertCoverImageToBase64(data);
-
-    // Calling the original res.json function with transformed data
-    return originalJson.call(this, transformedData);
-  };
-
-  next(); // Passing control to the next middleware
 };
 
 export default convertImagesToBase64;

@@ -69,7 +69,7 @@ const getBookPosts = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const book = books.find(b => b.cover_id) || books[0];
         // Kapak resmi base64'e dönüştürülüyor
         if (book.cover_image && Buffer.isBuffer(book.cover_image)) {
-            book.cover_image = book.cover_image.toString('base64');
+            book.cover_image = `data:image/jpeg;base64,${book.cover_image.toString('base64')}`;
         }
         // Yorumları getiriyoruz
         const posts = yield postModel.getBookPostsByTitleAndAuthor(title, author);

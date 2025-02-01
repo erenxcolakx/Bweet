@@ -56,7 +56,7 @@ router.route("/api/logout").get(auth.handleLogout);
 // Books işlemleri
 router.route("/api/books").get(auth.isAuthenticated, convertImagesToBase64_1.default, postController.getPosts);
 router.route("/api/books/search").get(auth.isAuthenticated, convertImagesToBase64_1.default, postController.searchBooks);
-router.route('/api/books/:title/:author').get(auth.isAuthenticated, convertImagesToBase64_1.default, postController.getBookPosts);
+router.route('/api/books/:title/:author').get(convertImagesToBase64_1.default, postController.getBookPosts);
 router.route("/api/submit").post(auth.isAuthenticated, upload.single('coverImage'), postController.addPost);
 router.route("/api/edit").post(auth.isAuthenticated, postController.updatePost);
 router.route("/api/sort").post(auth.isAuthenticated, convertImagesToBase64_1.default, postController.sortPosts);
@@ -68,6 +68,7 @@ router.route("/api/trending-books").get(convertImagesToBase64_1.default, postCon
 router.route('/api/google').get(auth.googleLogin);
 // Google OAuth geri dönüş işlemi
 router.route('/api/google/callback').get(passport_1.default.authenticate('google', {
+    session: false, // Don't use session
     failureRedirect: `${process.env.FRONTEND_URL}/login`
 }), auth.googleCallback);
 // Google ve genel çıkış işlemi

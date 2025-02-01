@@ -43,7 +43,7 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
-          <Route path="/google/callback" element={<GoogleAuthCallback />} />
+          <Route path="/auth-callback" element={<GoogleAuthCallback />} />
 
           {/* Protected routes */}
           <Route path='/books' element={<ProtectedRoute element={<BooksPage />} />} />

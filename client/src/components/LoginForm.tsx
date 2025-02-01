@@ -18,25 +18,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ error }) => {
 
     try {
       const response = await axios.post(`${process.env.REACT_APP_SERVER_ADDRESS}/api/login`, {
-        username: email,
+        email: email,
         password: password
-      }, {
-        withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json',
-        }
       });
 
-      console.log("Login Response: ", response);
-
       if (response.data.success) {
+        localStorage.setItem('token', response.data.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
         setUser(response.data.user);
-        // Add a small delay before navigation
-        setTimeout(() => {
-          navigate('/books');
-        }, 100);
-      } else {
-        navigate('/login', { state: { error: response.data.message } });
+        navigate('/books');
       }
     } catch (error: any) {
       console.error('Login error:', error);

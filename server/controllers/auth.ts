@@ -21,8 +21,14 @@ declare module 'express-session' {
 
 const saltRounds = 10;
 
+interface JWTPayload {
+  user_id: string;
+  email: string;
+  name: string;
+}
+
 export const handleLogin = async (req: Request, res: Response, next: NextFunction) => {
-  const email = req.body.username;
+  const email = req.body.email;
   const loginPassword = req.body.password;
 
   try {
@@ -43,28 +49,11 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
             });
           }
 
-          // Set session data
-          req.session.user = {
-            user_id: user.user_id.toString(),
-            email: user.email,
-            name: user.name
-          };
-
-          // Save session explicitly
-          await new Promise<void>((resolve, reject) => {
-            req.session.save((err) => {
-              if (err) {
-                logger.error(`Session save error during login for user: ${email}: ${err}`);
-                reject(err);
-              } else {
-                resolve();
-              }
-            });
-          });
-
-          logger.info(`User ${user.email} logged in successfully`);
+          const token = generateToken(user);
+          
           return res.status(200).json({ 
-            success: true, 
+            success: true,
+            token,
             user: { 
               user_id: user.user_id, 
               email: user.email, 
@@ -74,10 +63,7 @@ export const handleLogin = async (req: Request, res: Response, next: NextFunctio
         }
       }
     }
-    
-    logger.warn(`Failed login attempt for email: ${email}`);
     return res.status(401).json({ success: false, message: "Invalid credentials" });
-    
   } catch (error) {
     logger.error(`Login error for email ${email}: ${error}`);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -183,43 +169,61 @@ export const deleteAccount = async (req: Request, res: Response) => {
 
 // Check Auth middleware
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
-  
-  if (!authHeader?.startsWith('Bearer ')) {
-    logger.warn('No token provided');
-    return res.status(401).json({ success: false, message: 'Not authenticated' });
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ success: false, message: "Not authenticated" });
+    }
+
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+
+    if (!decoded) {
+      return res.status(401).json({ success: false, message: "Invalid token" });
+    }
+
+    req.session.user = decoded;
+    next();
+  } catch (error) {
+    logger.error('Auth middleware error:', error);
+    return res.status(401).json({ success: false, message: "Authentication failed" });
   }
-
-  const token = authHeader.split(' ')[1];
-  const decoded = verifyToken(token);
-
-  if (!decoded) {
-    logger.warn('Invalid token');
-    return res.status(401).json({ success: false, message: 'Not authenticated' });
-  }
-
-  req.user = decoded;
-  next();
 };
 
 // Check Auth endpoint
 export const checkAuth = (req: Request, res: Response) => {
-  if (!req.session || !req.session.user) {
-    logger.warn('Check auth failed: No session');
-    return res.status(401).json({ success: false, message: "Not authenticated" });
-  }
+  try {
+    const authHeader = req.headers.authorization;
+    
+    if (!authHeader?.startsWith('Bearer ')) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "No token provided" 
+      });
+    }
 
-  const user = req.session.user;
-  
-  if (user?.user_id) {
-    logger.info(`User is authenticated: ${user.email}`);
-    // Touch the session to keep it alive
-    req.session.touch();
-    return res.status(200).json({ success: true, user });
-  }
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
 
-  logger.warn('Check auth failed: Invalid user data');
-  return res.status(401).json({ success: false, message: "Not authenticated" });
+    if (!decoded) {
+      return res.status(401).json({ 
+        success: false, 
+        message: "Invalid token" 
+      });
+    }
+
+    return res.status(200).json({ 
+      success: true, 
+      user: decoded 
+    });
+  } catch (error) {
+    logger.error('Auth check failed:', error);
+    return res.status(401).json({ 
+      success: false, 
+      message: "Authentication failed" 
+    });
+  }
 };
 
 // Google OAuth yönlendirmesi
@@ -238,13 +242,9 @@ export const googleCallback = (req: Request, res: Response) => {
 };
 
 // Logout for OAuth or normal logouts
-export const logout = (req: Request, res: Response, next: NextFunction) => {
-  req.logout((err) => {
-    if (err) {
-      logger.error('Error during logout:', err);
-      return res.status(500).send('Logout failed');
-    }
-    logger.info(`User logged out successfully via OAuth: ${req.session}`);
-    res.status(200).json({ success: true, message: "Logout successful" });
+export const logout = (req: Request, res: Response) => {
+  res.status(200).json({ 
+    success: true, 
+    message: "Logout successful" 
   });
 };

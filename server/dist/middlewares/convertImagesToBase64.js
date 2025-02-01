@@ -6,46 +6,44 @@ it processes any cover_image fields in the post data, converting the image data
 This conversion is necessary because binary data such as images cannot be directly
 transmitted in JSON format and needs to be converted to a more web-friendly format
 like Base64.*/
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const buffer_1 = require("buffer");
-// Helper function to recursively convert cover_image fields in objects or arrays
-const convertCoverImageToBase64 = (data) => {
-    if (Array.isArray(data)) {
-        return data.map(item => convertCoverImageToBase64(item));
-    }
-    else if (typeof data === 'object' && data !== null) {
-        const newData = Object.assign({}, data);
-        // Check if the object contains a cover_image field
-        if (newData.cover_image && buffer_1.Buffer.isBuffer(newData.cover_image)) {
-            newData.cover_image = newData.cover_image.toString('base64');
-        }
-        // Recursively process all properties
-        for (const key in newData) {
-            if (newData.hasOwnProperty(key)) {
-                if (newData[key] instanceof Date) {
-                    // Leave Date objects unchanged
-                    newData[key] = newData[key];
-                }
-                else {
-                    // Recursively convert other object properties (including nested ones)
-                    newData[key] = convertCoverImageToBase64(newData[key]);
+const logger_1 = __importDefault(require("../config/logger"));
+const convertImagesToBase64 = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const modifyData = (item) => {
+            if (item && item.cover_image) {
+                if (Buffer.isBuffer(item.cover_image)) {
+                    const base64String = item.cover_image.toString('base64');
+                    return Object.assign(Object.assign({}, item), { cover_image: encodeURI(`data:image/jpeg;base64,${base64String}`) });
                 }
             }
+            return item;
+        };
+        if (res.locals.data) {
+            if (Array.isArray(res.locals.data)) {
+                res.locals.data = res.locals.data.map(modifyData);
+            }
+            else {
+                res.locals.data = modifyData(res.locals.data);
+            }
         }
-        return newData;
+        next();
     }
-    // Return non-object data (string, number, etc.) unchanged
-    return data;
-};
-const convertImagesToBase64 = (req, res, next) => {
-    const originalJson = res.json;
-    // Overriding res.json
-    res.json = function (data) {
-        // Recursively convert all cover_image fields in the response data
-        const transformedData = convertCoverImageToBase64(data);
-        // Calling the original res.json function with transformed data
-        return originalJson.call(this, transformedData);
-    };
-    next(); // Passing control to the next middleware
-};
+    catch (error) {
+        logger_1.default.error('Error converting images to base64:', error);
+        next(error);
+    }
+});
 exports.default = convertImagesToBase64;

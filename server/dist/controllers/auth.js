@@ -46,7 +46,7 @@ const logger_1 = __importDefault(require("../config/logger"));
 const jwt_1 = require("../config/jwt");
 const saltRounds = 10;
 const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    const email = req.body.username;
+    const email = req.body.email;
     const loginPassword = req.body.password;
     try {
         const result = yield authModel.getUserByEmail(email);
@@ -64,27 +64,10 @@ const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                             message: "Your email is not verified. A new verification email has been sent."
                         });
                     }
-                    // Set session data
-                    req.session.user = {
-                        user_id: user.user_id.toString(),
-                        email: user.email,
-                        name: user.name
-                    };
-                    // Save session explicitly
-                    yield new Promise((resolve, reject) => {
-                        req.session.save((err) => {
-                            if (err) {
-                                logger_1.default.error(`Session save error during login for user: ${email}: ${err}`);
-                                reject(err);
-                            }
-                            else {
-                                resolve();
-                            }
-                        });
-                    });
-                    logger_1.default.info(`User ${user.email} logged in successfully`);
+                    const token = (0, jwt_1.generateToken)(user);
                     return res.status(200).json({
                         success: true,
+                        token,
                         user: {
                             user_id: user.user_id,
                             email: user.email,
@@ -94,7 +77,6 @@ const handleLogin = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
                 }
             }
         }
-        logger_1.default.warn(`Failed login attempt for email: ${email}`);
         return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
     catch (error) {
@@ -204,36 +186,55 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.deleteAccount = deleteAccount;
 // Check Auth middleware
 const isAuthenticated = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
-        logger_1.default.warn('No token provided');
-        return res.status(401).json({ success: false, message: 'Not authenticated' });
+    try {
+        const authHeader = req.headers.authorization;
+        if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
+            return res.status(401).json({ success: false, message: "Not authenticated" });
+        }
+        const token = authHeader.split(' ')[1];
+        const decoded = (0, jwt_1.verifyToken)(token);
+        if (!decoded) {
+            return res.status(401).json({ success: false, message: "Invalid token" });
+        }
+        req.session.user = decoded;
+        next();
     }
-    const token = authHeader.split(' ')[1];
-    const decoded = (0, jwt_1.verifyToken)(token);
-    if (!decoded) {
-        logger_1.default.warn('Invalid token');
-        return res.status(401).json({ success: false, message: 'Not authenticated' });
+    catch (error) {
+        logger_1.default.error('Auth middleware error:', error);
+        return res.status(401).json({ success: false, message: "Authentication failed" });
     }
-    req.user = decoded;
-    next();
 };
 exports.isAuthenticated = isAuthenticated;
 // Check Auth endpoint
 const checkAuth = (req, res) => {
-    if (!req.session || !req.session.user) {
-        logger_1.default.warn('Check auth failed: No session');
-        return res.status(401).json({ success: false, message: "Not authenticated" });
+    try {
+        const authHeader = req.headers.authorization;
+        if (!(authHeader === null || authHeader === void 0 ? void 0 : authHeader.startsWith('Bearer '))) {
+            return res.status(401).json({
+                success: false,
+                message: "No token provided"
+            });
+        }
+        const token = authHeader.split(' ')[1];
+        const decoded = (0, jwt_1.verifyToken)(token);
+        if (!decoded) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid token"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            user: decoded
+        });
     }
-    const user = req.session.user;
-    if (user === null || user === void 0 ? void 0 : user.user_id) {
-        logger_1.default.info(`User is authenticated: ${user.email}`);
-        // Touch the session to keep it alive
-        req.session.touch();
-        return res.status(200).json({ success: true, user });
+    catch (error) {
+        logger_1.default.error('Auth check failed:', error);
+        return res.status(401).json({
+            success: false,
+            message: "Authentication failed"
+        });
     }
-    logger_1.default.warn('Check auth failed: Invalid user data');
-    return res.status(401).json({ success: false, message: "Not authenticated" });
 };
 exports.checkAuth = checkAuth;
 // Google OAuth yönlendirmesi
@@ -250,14 +251,10 @@ const googleCallback = (req, res) => {
 };
 exports.googleCallback = googleCallback;
 // Logout for OAuth or normal logouts
-const logout = (req, res, next) => {
-    req.logout((err) => {
-        if (err) {
-            logger_1.default.error('Error during logout:', err);
-            return res.status(500).send('Logout failed');
-        }
-        logger_1.default.info(`User logged out successfully via OAuth: ${req.session}`);
-        res.status(200).json({ success: true, message: "Logout successful" });
+const logout = (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Logout successful"
     });
 };
 exports.logout = logout;

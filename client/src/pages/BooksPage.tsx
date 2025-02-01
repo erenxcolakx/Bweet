@@ -8,6 +8,13 @@ import ManualBookAddButton from '../components/ManualBookAddButton';
 import ManualBookModal from '../modals/ManualBookModal';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { jwtDecode } from "jwt-decode";
+
+interface User {
+  user_id: string;
+  email: string;
+  name: string;
+}
 
 const BooksPage: React.FC = () => {
   interface Post {
@@ -15,7 +22,7 @@ const BooksPage: React.FC = () => {
     title: string;
     author: string;
     cover_id: string | null;
-    cover_image: Buffer | null;
+    cover_image: string | { type: string, data: number[] } | null;
     rating: number;
     review: string;
     time: string;
@@ -26,7 +33,7 @@ const BooksPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);  // Modalın açık olup olmadığını takip edin
   const [error, setError] = useState<string | null>(null); // Hata mesajını takip edin
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
+  const { user, loading, setUser } = useAuth();
 
   // Butona tıklandığında modalı açar
   const handleManualAddClick = () => {
@@ -39,10 +46,23 @@ const BooksPage: React.FC = () => {
   };
 
   useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      try {
+        const decoded = jwtDecode(token) as User;
+        setUser(decoded);
+        navigate('/books', { replace: true }); // URL'den token'ı temizle
+      } catch (error) {
+        console.error('Token decode failed:', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     if (!loading) {  // Sadece loading false olduğunda kontrol et
-      if (!user) {
-        navigate('/login');
-      } else {
+      if (user) {
         // Sayfa yüklendiğinde varsayılan sıralama
         handleSort('rto');
       }

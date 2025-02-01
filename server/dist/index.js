@@ -31,11 +31,13 @@ const corsOptions = {
     origin: [
         'https://bweet-fe.vercel.app',
         'https://bweet-be.vercel.app',
-        'https://bweet-be-git-main-erenxcolakxs-projects.vercel.app'
+        'https://bweet-be-git-main-erenxcolakxs-projects.vercel.app',
+        'http://localhost:3000'
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
+    exposedHeaders: ['set-cookie']
 };
 app.use((0, cors_1.default)(corsOptions));
 app.enable('trust proxy'); // Important for secure cookies behind a proxy
